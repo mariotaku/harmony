@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2007 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+  
+          http://www.apache.org/licenses/LICENSE-2.0
+  
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	android:installLocation="auto"
+	package="org.mariotaku.harmony"
+	android:versionCode="26"
+	android:versionName="@string/app_version">
+
+	<original-package android:name="com.android.music"/>
+
+	<uses-sdk
+		android:minSdkVersion="14"
+		android:targetSdkVersion="17"/>
+
+	<uses-permission android:name="android.permission.WAKE_LOCK"/>
+	<uses-permission android:name="android.permission.INTERNET"/>
+	<uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+	<uses-permission android:name="android.permission.VIBRATE"/>
+	<uses-permission android:name="android.permission.RECORD_AUDIO"/>
+	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+
+	<supports-screens android:anyDensity="true">
+	</supports-screens>
+
+	<uses-permission android:name="android.permission.BROADCAST_STICKY"/>
+	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+	<application
+		android:allowTaskReparenting="true"
+		android:name="org.mariotaku.harmony.app.HarmonyApplication"
+		android:icon="@drawable/ic_launcher_music"
+		android:label="@string/app_name"
+		android:taskAffinity="android.task.music"
+		android:theme="@style/Theme">
+		<meta-data
+			android:name="android.app.default_searchable"
+			android:value="org.mariotaku.harmony.QueryBrowserActivity"/>
+
+		<activity
+			android:name=".activity.MusicBrowserActivity"
+			android:label="@string/music_library"
+			android:theme="@style/Theme.MusicBrowser">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
+				<action android:name="org.mariotaku.harmony.MUSIC_BROWSER"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+				<category android:name="android.intent.category.LAUNCHER"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".activity.MusicPlaybackActivity"
+			android:icon="@drawable/ic_launcher_music"
+			android:label="@string/now_playing"
+			android:theme="@style/Theme.MusicPlayback"
+			android:parentActivityName=".activity.MusicBrowserActivity"
+			android:windowSoftInputMode="stateAlwaysHidden">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.PLAYBACK_VIEWER"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".app.TrackBrowserActivity"
+			android:label="@string/tracks"
+			android:theme="@style/Theme.MusicBrowser">
+			<intent-filter>
+				<action android:name="android.intent.action.EDIT"/>
+				<action android:name="android.intent.action.VIEW"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+
+				<data android:mimeType="vnd.android.cursor.dir/track"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".app.QueryBrowserActivity"
+			android:label="@string/search_hint"
+			android:theme="@style/Theme.MusicBrowser">
+			<intent-filter>
+				<action android:name="android.intent.action.SEARCH"/>
+				<action android:name="android.intent.action.MEDIA_SEARCH"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+
+			<meta-data
+				android:name="android.app.searchable"
+				android:resource="@xml/searchable"/>
+		</activity>
+		<activity
+			android:name=".dialog.PlayShortcut"
+			android:label="@string/play_selection"
+			android:theme="@android:style/Theme.NoDisplay">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.PLAY_SHORTCUT"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".dialog.ScanningProgress"
+			android:theme="@android:style/Theme.NoDisplay"/>
+		<activity
+			android:name=".app.MusicSettingsActivity"
+			android:label="@string/settings">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.MUSIC_SETTINGS"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".app.AppearanceSettingsActivity"
+			android:label="@string/settings">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.APPEARANCE_SETTINGS"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".app.PluginsManagerActivity"
+			android:label="@string/plugins_manager">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.PLUGINS_MANAGER"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".dialog.DeleteDialog"
+			android:label="@string/delete"
+			android:theme="@android:style/Theme.NoDisplay">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.DELETE_ITEMS"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".dialog.PlaylistDialog"
+			android:label="@string/rename"
+			android:theme="@android:style/Theme.NoDisplay">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.CREATE_PLAYLIST"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.RENAME_PLAYLIST"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".dialog.PlaylistPicker"
+			android:icon="@drawable/ic_launcher_shortcut_playlist"
+			android:label="@string/playlists"
+			android:theme="@android:style/Theme.NoDisplay">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.ADD_TO_PLAYLIST"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+			<intent-filter>
+				<action android:name="android.intent.action.CREATE_SHORTCUT"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".dialog.SearchDialog"
+			android:label="@string/search"
+			android:theme="@android:style/Theme.NoDisplay">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.SEARCH_LYRICS"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.SEARCH_ALBUMART"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".dialog.SleepTimerDialog"
+			android:label="@string/sleep_timer"
+			android:theme="@android:style/Theme.NoDisplay">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.SLEEP_TIMER"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".dialog.WeekSelector"
+			android:label="@string/set_time"
+			android:theme="@android:style/Theme.NoDisplay">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.WEEK_SELECTOR"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+			</intent-filter>
+		</activity>
+
+		<service
+			android:name=".MusicPlaybackService"
+			android:label="@string/playback_service_name">
+			<intent-filter>
+				<action android:name="org.mariotaku.harmony.PLAYBACK_SERVICE"/>
+			</intent-filter>
+		</service>
+
+		<receiver android:name=".MediaButtonIntentReceiver">
+			<intent-filter>
+				<action android:name="android.intent.action.MEDIA_BUTTON"/>
+				<action android:name="android.media.AUDIO_BECOMING_NOISY"/>
+			</intent-filter>
+		</receiver>
+		<receiver
+			android:name=".MediaAppWidgetProvider4x1"
+			android:label="@string/widget_label_4x1">
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+				<action android:name="org.mariotaku.harmony.playstatechanged"/>
+				<action android:name="org.mariotaku.harmony.metachanged"/>
+				<action android:name="org.mariotaku.harmony.favoritestatechanged"/>
+				<action android:name="org.mariotaku.harmony.newlyricsloaded"/>
+				<action android:name="org.mariotaku.harmony.lyricsrefreshed"/>
+			</intent-filter>
+
+			<meta-data
+				android:name="android.appwidget.provider"
+				android:resource="@xml/appwidget4x1_info"/>
+		</receiver>
+		<receiver
+			android:name=".MediaAppWidgetProvider4x2"
+			android:label="@string/widget_label_4x2">
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+				<action android:name="org.mariotaku.harmony.playstatechanged"/>
+				<action android:name="org.mariotaku.harmony.metachanged"/>
+				<action android:name="org.mariotaku.harmony.favoritestatechanged"/>
+				<action android:name="org.mariotaku.harmony.newlyricsloaded"/>
+				<action android:name="org.mariotaku.harmony.lyricsrefreshed"/>
+				<action android:name="org.mariotaku.harmony.repeatmodechanged"/>
+				<action android:name="org.mariotaku.harmony.shufflemodechanged"/>
+			</intent-filter>
+
+			<meta-data
+				android:name="android.appwidget.provider"
+				android:resource="@xml/appwidget4x2_info"/>
+		</receiver>
+	</application>
+
+</manifest>

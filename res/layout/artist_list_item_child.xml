@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<org.mariotaku.harmony.view.ArtistAlbumsGridView xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:columnWidth="@dimen/gridview_item_width"
+	android:gravity="center"
+	android:horizontalSpacing="@dimen/default_element_spacing"
+	android:numColumns="auto_fit"
+	android:scrollbars="none"
+	android:verticalSpacing="@dimen/default_element_spacing"
+	android:background="#80000000"/>
+

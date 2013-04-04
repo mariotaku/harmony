@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"	
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical">
+
+	<RelativeLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+
+		<TextView
+			android:id="@+id/current_time"
+			android:layout_width="64dp"
+			android:layout_height="wrap_content"
+			android:layout_alignParentLeft="true"
+			android:layout_centerVertical="true"
+			android:gravity="center"/>
+			
+		<SeekBar
+			android:id="@+id/seek_bar"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_toRightOf="@+id/current_time"
+			android:layout_toLeftOf="@+id/total_time"
+			android:layout_centerInParent="true"/>
+
+		<TextView
+			android:id="@+id/total_time"
+			android:layout_width="64dp"
+			android:layout_height="wrap_content"
+			android:layout_alignParentRight="true"
+			android:layout_centerVertical="true"
+			android:gravity="center"/>
+
+	</RelativeLayout>
+	<RelativeLayout
+		android:layout_width="match_parent"
+		android:layout_height="@dimen/music_playback_control_buttons_height">
+
+		<org.mariotaku.harmony.widget.RepeatingImageButton
+			android:id="@+id/prev"
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_toLeftOf="@+id/play_pause"
+			android:layout_marginRight="8dp"
+			android:padding="8dp"
+			android:src="@drawable/btn_playback_ic_prev"
+			style="?android:attr/borderlessButtonStyle"/>
+
+		<ImageButton
+			android:id="@+id/play_pause"
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_centerInParent="true"
+			android:paddingLeft="32dp"
+			android:paddingRight="32dp"
+			android:src="@drawable/btn_playback_ic_play"
+			style="?android:attr/borderlessButtonStyle"/>
+
+		<org.mariotaku.harmony.widget.RepeatingImageButton
+			android:id="@+id/next"
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_toRightOf="@+id/play_pause"
+			android:layout_marginLeft="8dp"
+			android:padding="8dp"
+			android:src="@drawable/btn_playback_ic_next"
+			style="?android:attr/borderlessButtonStyle"/>
+
+	</RelativeLayout>
+
+</LinearLayout>
