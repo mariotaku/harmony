@@ -11,6 +11,7 @@ import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.util.ServiceUtils;
 import org.mariotaku.harmony.util.ServiceWrapper;
 import android.app.Activity;
+import org.mariotaku.harmony.model.TrackInfo;
 
 public class BaseFragment extends Fragment implements Constants, ServiceConnection {
 
@@ -45,7 +46,7 @@ public class BaseFragment extends Fragment implements Constants, ServiceConnecti
 	protected final ServiceWrapper getServiceWrapper() {
 		return mService;
 	}
-
+	
 	protected void onCurrentMediaChanged() {
 
 	}

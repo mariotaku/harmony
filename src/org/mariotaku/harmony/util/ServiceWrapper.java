@@ -142,28 +142,28 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		return 0;
 	}
 
-	public void startSleepTimer(long millisecond, boolean gentle) throws RemoteException {
+	public void startSleepTimer(long millisecond, boolean gentle) {
 		// TODO: Implement this method
 	}
 
-	public void stopSleepTimer() throws RemoteException {
+	public void stopSleepTimer() {
 		// TODO: Implement this method
 	}
 
-	public long getSleepTimerRemained() throws RemoteException {
+	public long getSleepTimerRemained() {
 		// TODO: Implement this method
 		return 0;
 	}
 
-	public void toggleFavorite() throws RemoteException {
+	public void toggleFavorite() {
 		// TODO: Implement this method
 	}
 
-	public void addToFavorites(long id) throws RemoteException {
+	public void addToFavorites(long id) {
 		// TODO: Implement this method
 	}
 
-	public void removeFromFavorites(long id) throws RemoteException {
+	public void removeFromFavorites(long id) {
 		// TODO: Implement this method
 	}
 

@@ -772,8 +772,11 @@ public class MusicPlaybackService extends Service implements Constants {
 
 	@Override
 	public void onCreate() {
-
 		super.onCreate();
+		// Needs to be done in this thread, since otherwise
+		// ApplicationContext.getPowerManager() crashes.
+		mPlayer = new MultiPlayer(this);
+		mPlayer.setHandler(mMediaplayerHandler);
 
 		mPlaybackIntent = new Intent();
 
@@ -791,10 +794,6 @@ public class MusicPlaybackService extends Service implements Constants {
 		registerExternalStorageListener();
 		registerA2dpServiceListener();
 
-		// Needs to be done in this thread, since otherwise
-		// ApplicationContext.getPowerManager() crashes.
-		mPlayer = new MultiPlayer(this);
-		mPlayer.setHandler(mMediaplayerHandler);
 
 		reloadQueue();
 

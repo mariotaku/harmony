@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import org.mariotaku.harmony.Constants;
+import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.ServiceUtils;
 import org.mariotaku.harmony.util.ServiceWrapper;
 
@@ -20,11 +21,14 @@ public class BaseActivity extends Activity implements Constants, ServiceConnecti
 	private final BroadcastReceiver mMediaStatusReceiver = new BroadcastReceiver() {
 
 		@Override
-		public void onReceive(Context context, Intent intent) {
-			if (BROADCAST_MEDIA_CHANGED.equals(intent.getAction())) {
+		public void onReceive(final Context context, final Intent intent) {
+			final String action = intent.getAction();
+			if (BROADCAST_MEDIA_CHANGED.equals(action)) {
 				onCurrentMediaChanged();
-			} else if (BROADCAST_PLAYSTATE_CHANGED.equals(intent.getAction())) {
+			} else if (BROADCAST_PLAYSTATE_CHANGED.equals(action)) {
 				onPlayStateChanged();
+			} else if (BROADCAST_SEEK_CHANGED.equals(action)) {
+				onSeekChanged();
 			}
 		}
 
@@ -48,6 +52,10 @@ public class BaseActivity extends Activity implements Constants, ServiceConnecti
 	}
 	
 	protected void onPlayStateChanged() {
+		
+	}
+	
+	protected void onSeekChanged() {
 		
 	}
 

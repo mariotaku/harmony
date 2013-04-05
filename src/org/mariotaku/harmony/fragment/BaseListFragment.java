@@ -11,6 +11,7 @@ import android.os.IBinder;
 import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.util.ServiceUtils;
 import org.mariotaku.harmony.util.ServiceWrapper;
+import org.mariotaku.harmony.model.TrackInfo;
 
 public class BaseListFragment extends ListFragment implements Constants, ServiceConnection {
 

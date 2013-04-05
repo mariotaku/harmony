@@ -1,0 +1,10 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<style name="Animation.MusicPlayback" parent="android:Animation.Activity">
+		<item name="android:activityOpenEnterAnimation">@anim/music_playback_activity_enter</item>
+		<!--<item name="android:activityOpenExitAnimation">@anim/hold_long</item>
+		<item name="android:activityCloseEnterAnimation">@anim/hold_long</item>-->
+		<item name="android:activityCloseExitAnimation">@anim/music_playback_activity_exit</item>
+	</style>
+
+</resources>

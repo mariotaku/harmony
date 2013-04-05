@@ -40,19 +40,25 @@ import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.activity.BaseActivity;
 import org.mariotaku.harmony.dialog.ScanningProgress;
-import org.mariotaku.harmony.fragment.AlbumFragment;
-import org.mariotaku.harmony.fragment.ArtistFragment;
+import org.mariotaku.harmony.fragment.AlbumsFragment;
+import org.mariotaku.harmony.fragment.ArtistsFragment;
 import org.mariotaku.harmony.fragment.GenreFragment;
 import org.mariotaku.harmony.fragment.TrackFragment;
 import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.PreferencesEditor;
 import org.mariotaku.harmony.util.ServiceWrapper;
 import android.widget.TextView;
+import android.widget.ImageView;
+import org.mariotaku.harmony.util.ImageLoaderWrapper;
+import org.mariotaku.harmony.app.HarmonyApplication;
+import org.mariotaku.harmony.model.AlbumInfo;
 
 public class MusicBrowserActivity extends BaseActivity implements Constants, OnPageChangeListener, View.OnClickListener {
 
 	private TextView mTrackName;
 	private TextView mTrackDetail;
+
+	private ImageView mAlbumArt;
 
 	public void onClick(final View view) {
 		// TODO: Implement this method
@@ -73,13 +79,13 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 	private ServiceWrapper mService;
 	private PreferencesEditor mPrefs;
 
+	private ImageLoaderWrapper mImageLoader;
 
 	@Override
 	public void onCreate(Bundle icicle) {
-
 		super.onCreate(icicle);
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
+		mImageLoader = HarmonyApplication.getInstance(this).getImageLoaderWrapper();
 		mActionBar = getActionBar();
 		mActionBar.setDisplayShowTitleEnabled(false);
 		mActionBar.setDisplayShowHomeEnabled(false);
@@ -133,14 +139,15 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 	public void onContentChanged() {
 		super.onContentChanged();
 		mViewPager = (ViewPager) findViewById(R.id.pager);
+		mAlbumArt = (ImageView) findViewById(R.id.album_art);
 		mTrackName = (TextView) findViewById(R.id.track_name);
 		mTrackDetail = (TextView) findViewById(R.id.track_detail);
 	}
 
 	private void configureTabs(Bundle args) {
 
-		mTabsAdapter.addFragment(new ArtistFragment(), getString(R.string.artists).toUpperCase());
-		mTabsAdapter.addFragment(new AlbumFragment(), getString(R.string.albums).toUpperCase());
+		mTabsAdapter.addFragment(new ArtistsFragment(), getString(R.string.artists).toUpperCase());
+		mTabsAdapter.addFragment(new AlbumsFragment(), getString(R.string.albums).toUpperCase());
 		mTabsAdapter.addFragment(new TrackFragment(), getString(R.string.tracks).toUpperCase());
 		//mTabsAdapter.addFragment(new PlaylistFragment(), getString(R.string.playlists)
 		//		.toUpperCase());
@@ -158,6 +165,7 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 	private void updateTrackInfo() {
 		if (mService == null) return;
 		final TrackInfo track = mService.getTrackInfo();
+		final AlbumInfo album = AlbumInfo.getAlbumInfo(this, track);
 		if (track == null) {
 			// Empty playlist
 		} else {
@@ -170,6 +178,7 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 				mTrackDetail.setText(R.string.unknown_artist);
 			}
 		}
+		mImageLoader.displayImage(mAlbumArt, album != null ? album.album_art : null);
 	}
 
 	private class TabsAdapter extends FragmentStatePagerAdapter implements TabListener {

@@ -50,11 +50,19 @@
 			android:gravity="center_vertical"
 			android:background="?android:attr/selectableItemBackground">
 
+			<org.mariotaku.harmony.view.SquareImageView
+				android:id="@+id/album_art"
+				android:layout_height="match_parent"
+				android:layout_width="wrap_content"
+				android:layout_alignParentLeft="true"
+				android:layout_centerVertical="true"
+				android:scaleType="centerCrop"/>
+			
 			<TextView
 				android:id="@+id/track_name"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_alignParentLeft="true"
+				android:layout_toRightOf="@+id/album_art"
 				android:singleLine="true"
 				android:textAppearance="?android:attr/textAppearanceMedium"/>
 
@@ -62,7 +70,7 @@
 				android:id="@+id/track_detail"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_alignParentLeft="true"
+				android:layout_toRightOf="@+id/album_art"
 				android:layout_below="@+id/track_name"
 				android:singleLine="true"
 				android:textAppearance="?android:attr/textAppearanceSmall"/>

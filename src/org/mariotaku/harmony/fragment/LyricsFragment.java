@@ -143,6 +143,7 @@ public class LyricsFragment extends BaseFragment implements Constants, OnLineSel
 	@Override
 	protected void onServiceConnected(final ServiceWrapper service) {
 		mService = service;
+		loadLyrics();		
 	}
 
 	@Override
@@ -151,10 +152,7 @@ public class LyricsFragment extends BaseFragment implements Constants, OnLineSel
 	}
 	
 	protected void onCurrentMediaChanged() {
-		final TrackInfo track = mService.getTrackInfo();
-		if (track == null) return;
-		final String path = track.data.substring(0, track.data.lastIndexOf(".")) + ".lrc";
-		loadLyrics(path);
+		loadLyrics();
 	}
 	
 	protected void onPlayStateChanged() {
@@ -165,8 +163,11 @@ public class LyricsFragment extends BaseFragment implements Constants, OnLineSel
 		}
 	}
 
-	// TODO lyrics load animation
-	private void loadLyrics(final String path) {
+	private void loadLyrics() {
+		if (mService == null) return;
+		final TrackInfo track = mService.getTrackInfo();
+		if (track == null) return;
+		final String path = track.data.substring(0, track.data.lastIndexOf(".")) + ".lrc";
 		final LoaderManager lm = getLoaderManager();
 		final Bundle args = new Bundle();
 		args.putString(EXTRA_LYRICS_PATH, path);

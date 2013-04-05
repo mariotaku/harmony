@@ -32,8 +32,6 @@ import android.media.AudioManager;
 import android.media.audiofx.AudioEffect;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
-import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -68,7 +66,7 @@ import android.content.Context;
 import android.app.Activity;
 
 public class MusicPlaybackActivity extends BaseActivity implements Constants, View.OnClickListener, SeekBar.OnSeekBarChangeListener,
- 		ViewPager.OnPageChangeListener {
+ 		ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener {
 
 	public void onClick(final View view) {
 		switch (view.getId()) {
@@ -96,6 +94,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	}
 
 	public void onPageSelected(final int position) {
+		mViewPager.setBackgroundColor(position == 0 ? Color.TRANSPARENT : 0x80000000);
 	}
 
 	public void onPageScrollStateChanged(final int state) {
@@ -119,9 +118,6 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	private long mDuration;
 	private boolean mPaused;
 
-	private static final int REFRESH = 1;
-	private static final int QUIT = 2;
-
 	private TextView mCurrentTime, mTotalTime;
 	private SeekBar mSeekBar;
 	private ImageView mAlbumArt;
@@ -134,6 +130,9 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	private ServiceWrapper mService;
 	private PreferencesEditor mPrefs;
 	private ImageLoaderWrapper mImageLoader;
+	
+	private final Handler mHandler = new Handler();
+	private Runnable mRefreshRunnable;
 
 	int mInitialX = -1;
 
@@ -161,61 +160,48 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 
 	@Override
 	public void onStartTrackingTouch(SeekBar bar) {
-
 		mLastSeekEventTime = 0;
-		mFromTouch = true;
-		mHandler.removeMessages(REFRESH);
+		mFromTouch = true;		
+		mHandler.removeCallbacks(mRefreshRunnable);
 	}
 
 	@Override
 	public void onStopTrackingTouch(SeekBar bar) {
-
 		mPosOverride = -1;
 		mFromTouch = false;
 		// Ensure that progress is properly updated in the future,
-		mHandler.sendEmptyMessage(REFRESH);
+		mHandler.removeCallbacks(mRefreshRunnable);
 	}
 		
-	private RepeatListener mRewListener = new RepeatListener() {
-
-		@Override
-		public void onRepeat(View v, long howlong, int repcnt) {
-
-			scanBackward(repcnt, howlong);
-		}
-	};
-
-	private RepeatListener mFfwdListener = new RepeatListener() {
-
-		@Override
-		public void onRepeat(View v, long howlong, int repcnt) {
-
-			scanForward(repcnt, howlong);
-		}
-	};
-
-	private final Handler mHandler = new Handler() {
-
-		@Override
-		public void handleMessage(Message msg) {
-
-			switch (msg.what) {
-				case REFRESH:
-					long next = refreshNow();
-					queueNextRefresh(next);
-					break;
-
-				case QUIT:
-					Toast.makeText(getApplicationContext(), R.string.service_start_error_msg,
-							Toast.LENGTH_SHORT);
-					finish();
-					break;
-
-				default:
-					break;
+	@Override
+	public void onRepeat(View v, long howlong, int repcnt) {
+		switch (v.getId()) {
+			case R.id.prev: {
+				scanBackward(repcnt, howlong);
+				break;
+			}
+			case R.id.next: {
+				scanForward(repcnt, howlong);
+				break;
 			}
 		}
-	};
+	}
+	
+	private static final class RefreshRunnable implements Runnable {
+
+		private final MusicPlaybackActivity mActivity;
+		
+		private RefreshRunnable(final MusicPlaybackActivity activity) {
+			mActivity = activity;
+		}
+		
+		@Override
+		public void run() {
+			mActivity.queueNextRefresh(mActivity.refreshNow());
+		}
+		
+		
+	}
 
 	private static final int REQUEST_EQUALIZER = 1;
 
@@ -223,12 +209,13 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 
 	/** Called when the activity is first created. */
 	@Override
-	public void onCreate(Bundle icicle) {
-		super.onCreate(icicle);
-		requestWindowFeature(Window.FEATURE_PROGRESS);
-		setVolumeControlStream(AudioManager.STREAM_MUSIC);
+	public void onCreate(final Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 		mImageLoader = HarmonyApplication.getInstance(this).getImageLoaderWrapper();
 		mPrefs = new PreferencesEditor(this);
+		mRefreshRunnable = new RefreshRunnable(this);
+		requestWindowFeature(Window.FEATURE_PROGRESS);
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
 		setContentView(R.layout.music_playback);
 		mActionBar = getActionBar();
@@ -243,8 +230,8 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		mPrevButton.setOnClickListener(this);
 		mNextButton.setOnClickListener(this);
 		
-		mPrevButton.setRepeatListener(mRewListener, 260);
-		mNextButton.setRepeatListener(mFfwdListener, 260);
+		mPrevButton.setRepeatListener(this, 260);
+		mNextButton.setRepeatListener(this, 260);
 
 		mDeviceHasDpad = getResources().getConfiguration().navigation == Configuration.NAVIGATION_DPAD;
 
@@ -253,7 +240,6 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		mAdapter.addFragment(LyricsFragment.class);
 		mViewPager.setAdapter(mAdapter);
 		mViewPager.setOnPageChangeListener(this);
-		
 	}
 
 	@Override
@@ -464,16 +450,13 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 //		}
 		return super.onPrepareOptionsMenu(menu);
 	}
-
+	
 	@Override
 	public void onResume() {
-
 		super.onResume();
 		if (mIntentDeRegistered) {
 			mPaused = false;
 		}
-
-		updatePlayPauseButton();
 	}
 
 	@Override
@@ -481,7 +464,8 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		mService = service;
 		// something went wrong
 		if (service == null) {
-			mHandler.sendEmptyMessage(QUIT);
+			Toast.makeText(this, R.string.service_start_error_msg, Toast.LENGTH_SHORT);
+			finish();
 			return;
 		}
 		if (service.getTrackInfo() == null) {
@@ -489,27 +473,27 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 			finish();
 			return;
 		}
-
+		updateTrackInfo();
+		updatePlayPauseButton();
+		queueNextRefresh(refreshNow());
 	}
 
 
 
 	@Override
-	public void onStart() {
+	protected void onStart() {
 		super.onStart();
 		mPaused = false;
-		loadPreferences();
+		mLyricsWakelock = mPrefs.getBooleanPref(KEY_LYRICS_WAKELOCK, DEFAULT_LYRICS_WAKELOCK);
 		if (mLyricsWakelock) {
 			getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
 		} else {
 			getWindow().clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
 		}
-
-		queueNextRefresh(refreshNow());
 	}
 
 	@Override
-	public void onStop() {
+	protected void onStop() {
 		mPaused = true;
 		getWindow().clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
 		super.onStop();
@@ -555,15 +539,10 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		}
 	}
 
-	private void loadPreferences() {
-		mLyricsWakelock = mPrefs.getBooleanPref(KEY_LYRICS_WAKELOCK, DEFAULT_LYRICS_WAKELOCK);
-	}
 
 	private void queueNextRefresh(long delay) {
 		if (!mPaused && !mFromTouch) {
-			Message msg = mHandler.obtainMessage(REFRESH);
-			mHandler.removeMessages(REFRESH);
-			mHandler.sendMessageDelayed(msg, delay);
+			mHandler.postDelayed(mRefreshRunnable, delay);
 		}
 	}
 
@@ -681,13 +660,8 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	}
 
 	private void toggleFavorite() {
-
 		if (mService == null) return;
-		try {
-			mService.toggleFavorite();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
+		mService.toggleFavorite();
 	}
 
 	
@@ -715,7 +689,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		mSeekBar.setProgress(0);
 		mDuration = mService.getDuration();
 		mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
-		mImageLoader.displayImage(mAlbumArt, album.album_art);
+		mImageLoader.displayImage(mAlbumArt, album != null ? album.album_art : null);
 	}
 	
 	private boolean useDpadMusicControl() {
