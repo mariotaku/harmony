@@ -176,22 +176,22 @@ public class LyricsParser {
 
 			private static final String LRC_TEMPLATE = "[%d:%.2f]%s";
 			private final long time, actualTime;
-			private final String content;
+			private final String text;
 			private final int index;
 
-			LineImpl(final long time, final long offset, final int index, final String content) {
+			LineImpl(final long time, final long offset, final int index, final String text) {
 				this.time = time;
 				this.actualTime = time + offset;
 				this.index = index;
-				this.content = content;
+				this.text = text;
 			}
 			
 			public long getActualTime() {
 				return actualTime;
 			}
 
-			public String getContent() {
-				return content;
+			public String getText() {
+				return text;
 			}
 			
 			public int getIndex() {
@@ -203,7 +203,8 @@ public class LyricsParser {
 			}
 			
 			public String toString() {
-				return String.format(LRC_TEMPLATE, time / 60000, (float) (time % 60000) / 1000, content);
+				return text;
+				//return String.format(LRC_TEMPLATE, time / 60000, (float) (time % 60000) / 1000, text);
 			}
 		}
 		

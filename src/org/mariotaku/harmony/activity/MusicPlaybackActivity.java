@@ -170,7 +170,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		mPosOverride = -1;
 		mFromTouch = false;
 		// Ensure that progress is properly updated in the future,
-		mHandler.removeCallbacks(mRefreshRunnable);
+		mHandler.post(mRefreshRunnable);
 	}
 		
 	@Override

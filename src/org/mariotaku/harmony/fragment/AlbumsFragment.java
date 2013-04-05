@@ -20,9 +20,7 @@
 
 package org.mariotaku.harmony.fragment;
 
-import android.app.Fragment;
 import android.app.LoaderManager;
-import android.app.SearchManager;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -35,14 +33,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.adapter.AlbumsAdapter;
 import org.mariotaku.harmony.app.TrackBrowserActivity;
-import org.mariotaku.harmony.util.ServiceWrapper;
+import org.mariotaku.harmony.model.AlbumInfo;
 import org.mariotaku.harmony.model.TrackInfo;
+import org.mariotaku.harmony.util.ServiceWrapper;
 
-public class AlbumsFragment extends BaseFragment implements Constants, AdapterView.OnItemClickListener,
+public class AlbumsFragment extends BaseFragment implements Constants, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener,
 		LoaderManager.LoaderCallbacks<Cursor> {
 
 	private AlbumsAdapter mAdapter;
@@ -55,6 +55,7 @@ public class AlbumsFragment extends BaseFragment implements Constants, AdapterVi
 		mAdapter = new AlbumsAdapter(getActivity());
 		mGridView.setAdapter(mAdapter);
 		mGridView.setOnItemClickListener(this);
+		mGridView.setOnItemLongClickListener(this);
 		getLoaderManager().initLoader(0, null, this);
 	}
 
@@ -74,8 +75,21 @@ public class AlbumsFragment extends BaseFragment implements Constants, AdapterVi
 	}
 
 	@Override
-	public void onItemClick(AdapterView<?> adapter, View view, int position, long id) {
-		showDetails(position, id);
+	public void onItemClick(AdapterView<?> view, View child, int position, long id) {
+		final Bundle extras = new Bundle();
+		extras.putString(INTENT_KEY_TYPE, MediaStore.Audio.Albums.CONTENT_TYPE);
+		extras.putLong(MediaStore.Audio.Albums._ID, id);
+		final Intent intent = new Intent(Intent.ACTION_VIEW);
+		intent.setClass(getActivity(), TrackBrowserActivity.class);
+		intent.putExtras(extras);
+		startActivity(intent);
+	}	
+
+	@Override
+	public boolean onItemLongClick(AdapterView<?> view, View child, int position, long id) {
+		final AlbumInfo album = mAdapter.getAlbumInfo(position);
+		Toast.makeText(getActivity(), "album " + album + " selected", Toast.LENGTH_SHORT).show();
+		return true;
 	}
 
 	@Override
@@ -107,18 +121,6 @@ public class AlbumsFragment extends BaseFragment implements Constants, AdapterVi
 	private void updateNowPlaying() {
 		final TrackInfo track = mService != null ? mService.getTrackInfo() : null;
 		mAdapter.setCurrentAlbumId(track != null ? track.album_id : -1);
-	}
-
-	private void showDetails(int index, long id) {
-
-		Bundle bundle = new Bundle();
-		bundle.putString(INTENT_KEY_TYPE, MediaStore.Audio.Albums.CONTENT_TYPE);
-		bundle.putLong(MediaStore.Audio.Albums._ID, id);
-
-		Intent intent = new Intent(Intent.ACTION_VIEW);
-		intent.setClass(getActivity(), TrackBrowserActivity.class);
-		intent.putExtras(bundle);
-		startActivity(intent);
 	}
 
 }

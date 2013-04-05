@@ -42,8 +42,8 @@ import org.mariotaku.harmony.activity.BaseActivity;
 import org.mariotaku.harmony.dialog.ScanningProgress;
 import org.mariotaku.harmony.fragment.AlbumsFragment;
 import org.mariotaku.harmony.fragment.ArtistsFragment;
-import org.mariotaku.harmony.fragment.GenreFragment;
-import org.mariotaku.harmony.fragment.TrackFragment;
+import org.mariotaku.harmony.fragment.GenresFragment;
+import org.mariotaku.harmony.fragment.TracksFragment;
 import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.PreferencesEditor;
 import org.mariotaku.harmony.util.ServiceWrapper;
@@ -148,10 +148,10 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 
 		mTabsAdapter.addFragment(new ArtistsFragment(), getString(R.string.artists).toUpperCase());
 		mTabsAdapter.addFragment(new AlbumsFragment(), getString(R.string.albums).toUpperCase());
-		mTabsAdapter.addFragment(new TrackFragment(), getString(R.string.tracks).toUpperCase());
+		mTabsAdapter.addFragment(new TracksFragment(), getString(R.string.tracks).toUpperCase());
 		//mTabsAdapter.addFragment(new PlaylistFragment(), getString(R.string.playlists)
 		//		.toUpperCase());
-		mTabsAdapter.addFragment(new GenreFragment(), getString(R.string.genres).toUpperCase());
+		mTabsAdapter.addFragment(new GenresFragment(), getString(R.string.genres).toUpperCase());
 		mViewPager.setOffscreenPageLimit(3);
 		mViewPager.setAdapter(mTabsAdapter);
 		int currenttab = mPrefs.getIntState(STATE_KEY_CURRENTTAB, 0);

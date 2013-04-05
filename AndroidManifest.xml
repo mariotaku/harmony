@@ -55,6 +55,7 @@
 		<activity
 			android:name=".activity.MusicBrowserActivity"
 			android:label="@string/music_library"
+			android:launchMode="singleTop"
 			android:theme="@style/Theme.MusicBrowser">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
@@ -68,6 +69,7 @@
 			android:name=".activity.MusicPlaybackActivity"
 			android:icon="@drawable/ic_launcher_music"
 			android:label="@string/now_playing"
+			android:launchMode="singleTop"
 			android:theme="@style/Theme.MusicPlayback"
 			android:parentActivityName=".activity.MusicBrowserActivity"
 			android:windowSoftInputMode="stateAlwaysHidden">

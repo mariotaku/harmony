@@ -16,7 +16,7 @@ public interface Lyrics {
 
 	public static interface Line {
 
-		public String getContent();
+		public String getText();
 		
 		public int getIndex();
 

@@ -31,7 +31,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore.Audio;
 import android.app.FragmentTransaction;
-import android.app.ListFragment;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
 import android.content.Loader;
@@ -43,19 +42,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import org.mariotaku.harmony.app.TrackBrowserActivity;
 
-public class GenreFragment extends ListFragment implements LoaderCallbacks<Cursor>, Constants {
+public class GenresFragment extends BaseListFragment implements LoaderCallbacks<Cursor>, Constants {
 
 	private GenresAdapter mAdapter;
-
 	private int mNameIdx;
-
-	public GenreFragment() {
-
-	}
-
-	public GenreFragment(Bundle args) {
-		setArguments(args);
-	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -89,7 +79,6 @@ public class GenreFragment extends ListFragment implements LoaderCallbacks<Curso
 
 	@Override
 	public void onListItemClick(ListView listview, View view, int position, long id) {
-
 		showDetails(position, id);
 	}
 
@@ -101,17 +90,9 @@ public class GenreFragment extends ListFragment implements LoaderCallbacks<Curso
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
-		if (data == null) {
-			getActivity().finish();
-			return;
-		}
-
 		mNameIdx = data.getColumnIndexOrThrow(Audio.Genres.NAME);
-
 		mAdapter.changeCursor(data);
-
 		setListAdapter(mAdapter);
-
 	}
 
 	@Override

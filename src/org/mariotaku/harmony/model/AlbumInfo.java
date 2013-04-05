@@ -2,7 +2,9 @@ package org.mariotaku.harmony.model;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
+import android.provider.MediaStore;
 import android.provider.MediaStore.Audio.Albums;
+import android.text.TextUtils;
 
 public class AlbumInfo {
 
@@ -34,4 +36,21 @@ public class AlbumInfo {
 			}
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "AlbumInfo{album=" + album + ",album_id=" + album_id + ",artist=" + artist + ",album_art,"
+			+ album_art + "}";
+	}
+	
+	public static boolean isUnknownAlbum(final AlbumInfo info) {
+		if (info == null) return true;
+		return TextUtils.isEmpty(info.album) || MediaStore.UNKNOWN_STRING.equals(info.album);
+	}
+
+	public static boolean isUnknownArtist(final TrackInfo info) {
+		if (info == null) return true;
+		return TextUtils.isEmpty(info.artist) || MediaStore.UNKNOWN_STRING.equals(info.artist);
+	}
+	
 }

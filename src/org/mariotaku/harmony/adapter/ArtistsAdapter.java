@@ -19,8 +19,10 @@ import android.widget.TextView;
 import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.util.MusicUtils;
+import org.mariotaku.harmony.model.AlbumInfo;
+import org.mariotaku.harmony.model.ArtistInfo;
 
-public class ArtistsAdapter extends SimpleCursorTreeAdapter implements Constants {
+public final class ArtistsAdapter extends SimpleCursorTreeAdapter implements Constants {
 
 	private static final String EXTRAS_KEY_GROUP_POSITION = "group_position";
 
@@ -30,7 +32,7 @@ public class ArtistsAdapter extends SimpleCursorTreeAdapter implements Constants
 	private final ContentResolver mResolver;
 	private final int mGridViewSpacing, mColumnWidth;
 
-	private int mGroupArtistIdIdx, mGroupArtistIdx, mGroupAlbumIdx, mGroupSongIdx;
+	private int mArtistIdIdx, mArtistIdx, mAlbumNumberIdx, mTrackNumberIdx;
 	private long mCurrentArtistId, mCurrentAlbumId;
 
 	private static final String[] CHILD_COLUMNS = new String[] { Audio.Albums._ID, Audio.Albums.ALBUM, Audio.Albums.ARTIST,
@@ -77,7 +79,7 @@ public class ArtistsAdapter extends SimpleCursorTreeAdapter implements Constants
 	@Override
 	public void bindGroupView(View view, Context context, Cursor cursor, boolean isexpanded) {
 		final ViewHolderGroup viewholder = (ViewHolderGroup) view.getTag();
-		final String artist = cursor.getString(mGroupArtistIdx);
+		final String artist = cursor.getString(mArtistIdx);
 		boolean unknown = TextUtils.isEmpty(artist) || MediaStore.UNKNOWN_STRING.equals(artist);
 		if (unknown) {
 			viewholder.artist_name.setText(R.string.unknown_artist);
@@ -85,14 +87,14 @@ public class ArtistsAdapter extends SimpleCursorTreeAdapter implements Constants
 			viewholder.artist_name.setText(artist);
 		}
 
-		final int numalbums = cursor.getInt(mGroupAlbumIdx);
-		final int numsongs = cursor.getInt(mGroupSongIdx);
+		final int numalbums = cursor.getInt(mAlbumNumberIdx);
+		final int numsongs = cursor.getInt(mTrackNumberIdx);
 
 		final String songs_albums = MusicUtils.makeAlbumsLabel(context, numalbums, numsongs, unknown);
 
 		viewholder.album_track_count.setText(songs_albums);
 
-		if (mCurrentArtistId == cursor.getLong(mGroupArtistIdIdx)) {
+		if (mCurrentArtistId == cursor.getLong(mArtistIdIdx)) {
 			viewholder.artist_name.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_indicator_nowplaying_small, 0);
 		} else {
 			viewholder.artist_name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
@@ -103,10 +105,31 @@ public class ArtistsAdapter extends SimpleCursorTreeAdapter implements Constants
 	public void changeCursor(final Cursor cursor) {
 		super.changeCursor(cursor);
 		if (cursor == null) return;
-		mGroupArtistIdIdx = cursor.getColumnIndexOrThrow(Audio.Artists._ID);
-		mGroupArtistIdx = cursor.getColumnIndexOrThrow(Audio.Artists.ARTIST);
-		mGroupAlbumIdx = cursor.getColumnIndexOrThrow(Audio.Artists.NUMBER_OF_ALBUMS);
-		mGroupSongIdx = cursor.getColumnIndexOrThrow(Audio.Artists.NUMBER_OF_TRACKS);
+		mArtistIdIdx = cursor.getColumnIndex(Audio.Artists._ID);
+		mArtistIdx = cursor.getColumnIndex(Audio.Artists.ARTIST);
+		mAlbumNumberIdx = cursor.getColumnIndex(Audio.Artists.NUMBER_OF_ALBUMS);
+		mTrackNumberIdx = cursor.getColumnIndex(Audio.Artists.NUMBER_OF_TRACKS);
+	}
+
+	public AlbumInfo getAlbumInfo(final int groupPos, final int childPos) {
+		if (groupPos < 0 || groupPos >= getGroupCount() || childPos < 0) return null;
+		final Cursor c = getChildrenCursor(getGroup(groupPos));
+		try { 
+			if (c == null || childPos >= c.getCount()) return null;
+			c.moveToPosition(childPos);
+			return new AlbumInfo(c);
+		} finally {
+			if (c != null) {
+				c.close();
+			}
+		}
+	}
+
+	public ArtistInfo getArtistInfo(int groupPos) {
+		if (groupPos < 0 || groupPos >= getGroupCount()) return null;
+		final Cursor c = getGroup(groupPos);
+		if (c == null) return null;
+		return new ArtistInfo(c);
 	}
 
 	@Override
@@ -115,8 +138,7 @@ public class ArtistsAdapter extends SimpleCursorTreeAdapter implements Constants
 	}
 
 	@Override
-	public View newGroupView(Context context, Cursor cursor, boolean isExpanded,
-			final ViewGroup parent) {
+	public View newGroupView(final Context context, final Cursor cursor, final boolean isExpanded, final ViewGroup parent) {
 		final View view = super.newGroupView(context, cursor, isExpanded, parent);
 		view.setTag(new ViewHolderGroup(view));
 		return view;

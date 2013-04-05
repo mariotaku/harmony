@@ -20,7 +20,6 @@
 
 package org.mariotaku.harmony.fragment;
 
-import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -33,16 +32,20 @@ import android.provider.MediaStore.Audio;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ExpandableListView;
+import android.widget.Toast;
 import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.adapter.ArtistsAdapter;
 import org.mariotaku.harmony.app.TrackBrowserActivity;
+import org.mariotaku.harmony.model.AlbumInfo;
+import org.mariotaku.harmony.model.ArtistInfo;
 import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.ServiceWrapper;
 
-public class ArtistsFragment extends BaseFragment implements LoaderManager.LoaderCallbacks<Cursor>, Constants, ExpandableListView.OnChildClickListener,
-		ArtistsAdapter.OnChildLongClickListener {
+public class ArtistsFragment extends BaseFragment implements Constants, LoaderManager.LoaderCallbacks<Cursor>, ExpandableListView.OnChildClickListener,
+		ArtistsAdapter.OnChildLongClickListener, AdapterView.OnItemLongClickListener {
 
 	private ArtistsAdapter mAdapter;
 	private ExpandableListView mListView;
@@ -51,10 +54,9 @@ public class ArtistsFragment extends BaseFragment implements LoaderManager.Loade
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		mListView = (ExpandableListView) getView().findViewById(R.id.artist_expandable_list);
 		mAdapter = new ArtistsAdapter(getActivity(), mListView, this, this);
 		mListView.setAdapter(mAdapter);
-		mListView.setOnCreateContextMenuListener(this);
+		mListView.setOnItemLongClickListener(this);
 		getLoaderManager().initLoader(0, null, this);
 	}
 	
@@ -72,6 +74,8 @@ public class ArtistsFragment extends BaseFragment implements LoaderManager.Loade
 	@Override
 	public boolean onChildLongClick(final ExpandableListView listView, final View view, final int groupPos, final int childPos, final long id) {
 		// TODO: Implement this method
+		final AlbumInfo album = mAdapter.getAlbumInfo(groupPos, childPos);
+		Toast.makeText(getActivity(), "album " + album + " selected", Toast.LENGTH_SHORT).show();
 		return true;
 	}
 
@@ -86,10 +90,22 @@ public class ArtistsFragment extends BaseFragment implements LoaderManager.Loade
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.artist_album_browser, container, false);
+		final View view = inflater.inflate(R.layout.artist_album_browser, container, false);
+		mListView = (ExpandableListView) view.findViewById(R.id.artist_expandable_list);
 		return view;
 	}
 
+	@Override
+	public boolean onItemLongClick(final AdapterView<?> view, final View child, final int position, final long id) {
+		final long packed_pos = mListView.getExpandableListPosition(position);
+		final int type = ExpandableListView.getPackedPositionType(packed_pos);
+		if (type != ExpandableListView.PACKED_POSITION_TYPE_GROUP) return false;
+		final int group_pos = ExpandableListView.getPackedPositionGroup(packed_pos);
+		final ArtistInfo artist = mAdapter.getArtistInfo(group_pos);
+		Toast.makeText(getActivity(), "artist " + artist + " selected", Toast.LENGTH_SHORT).show();
+		return true;
+	}
+	
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
 		mAdapter.setGroupCursor(null);
@@ -118,6 +134,7 @@ public class ArtistsFragment extends BaseFragment implements LoaderManager.Loade
 
 	private void updateNowPlaying() {
 		final TrackInfo track = mService != null ? mService.getTrackInfo() : null;
+		mAdapter.setCurrentArtistId(track != null ? track.artist_id : -1);
 		mAdapter.setCurrentAlbumId(track != null ? track.album_id : -1);
 	}
 	

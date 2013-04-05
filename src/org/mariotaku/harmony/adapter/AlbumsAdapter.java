@@ -12,6 +12,7 @@ import org.mariotaku.harmony.util.ImageLoaderWrapper;
 import org.mariotaku.harmony.util.MusicUtils;
 import org.mariotaku.harmony.view.holder.AlbumViewHolder;
 import org.mariotaku.harmony.app.HarmonyApplication;
+import org.mariotaku.harmony.model.AlbumInfo;
 
 public class AlbumsAdapter extends SimpleCursorAdapter {
 
@@ -52,19 +53,25 @@ public class AlbumsAdapter extends SimpleCursorAdapter {
 	}
 
 	@Override
-	public View newView(Context context, Cursor cursor, ViewGroup parent) {
-		final View view = super.newView(context, cursor, parent);
-		final AlbumViewHolder mViewHolder = new AlbumViewHolder(view);
-		view.setTag(mViewHolder);
-		return view;
-	}
-
-	@Override
 	public void changeCursor(final Cursor cursor) {
 		super.changeCursor(cursor);
 		setCursorIndices(cursor);
 	}
 	
+	public AlbumInfo getAlbumInfo(final int position) {
+		if (position < 0 || position >= getCount()) return null;
+		final Cursor c = (Cursor) getItem(position);
+		if (c == null) return null;
+		return new AlbumInfo(c);
+	}
+
+	@Override
+	public View newView(Context context, Cursor cursor, ViewGroup parent) {
+		final View view = super.newView(context, cursor, parent);
+		view.setTag(new AlbumViewHolder(view));
+		return view;
+	}
+
 	public void setCurrentAlbumId(final long album_id) {
 		if (mCurrentAlbumId == album_id) return;
 		mCurrentAlbumId = album_id;

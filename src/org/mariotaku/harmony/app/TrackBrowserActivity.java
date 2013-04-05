@@ -33,7 +33,7 @@ import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.activity.BaseActivity;
 import org.mariotaku.harmony.util.MusicUtils;
 import org.mariotaku.harmony.util.ServiceWrapper;
-import org.mariotaku.harmony.fragment.TrackFragment;
+import org.mariotaku.harmony.fragment.TracksFragment;
 
 public class TrackBrowserActivity extends BaseActivity implements Constants {
 
@@ -61,7 +61,7 @@ public class TrackBrowserActivity extends BaseActivity implements Constants {
 			bundle.putString(INTENT_KEY_TYPE, intent.getType());
 		}
 
-		TrackFragment fragment = new TrackFragment();
+		TracksFragment fragment = new TracksFragment();
 		fragment.setArguments(bundle);
 
 		getFragmentManager().beginTransaction().replace(android.R.id.content, fragment)

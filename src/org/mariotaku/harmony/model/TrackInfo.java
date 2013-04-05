@@ -50,6 +50,7 @@ public class TrackInfo implements Parcelable {
 		return 0;
 	}
 	
+	@Override
 	public String toString() {
 		return "TrackInfo{album=" + album + ",album_id=" + album_id + ",artist=" + artist + ",artist_id,"
 				+ artist_id + "data=" + data + ",title=" + title + ",track_id=" + track_id + "}";
@@ -65,9 +66,9 @@ public class TrackInfo implements Parcelable {
 		out.writeString(data);
 	}
 	
-	public static boolean isUnknownAlbum(final TrackInfo info) {
-		if (info == null) return true;
-		return TextUtils.isEmpty(info.album) || MediaStore.UNKNOWN_STRING.equals(info.album);
+	public static boolean isUnknownAlbum(final TrackInfo track) {
+		if (track == null) return true;
+		return TextUtils.isEmpty(track.album) || MediaStore.UNKNOWN_STRING.equals(track.album);
 	}
 	
 	public static boolean isUnknownArtist(final TrackInfo info) {

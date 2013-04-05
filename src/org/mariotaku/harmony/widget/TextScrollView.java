@@ -96,7 +96,6 @@ public class TextScrollView extends ScrollView implements OnLongClickListener {
 
 	@Override
 	public boolean onLongClick(View view) {
-
 		if (mListener != null) {
 			Object tag = view.getTag();
 			int id = tag != null ? Integer.valueOf(tag.toString()) : 0;
