@@ -38,13 +38,13 @@ import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.activity.BaseActivity;
 import org.mariotaku.harmony.util.MusicUtils;
-import org.mariotaku.harmony.fragment.QueryFragment;
+import org.mariotaku.harmony.fragment.SearchFragment;
 
 public class QueryBrowserActivity extends BaseActivity implements Constants, TextWatcher {
 
 	private Intent intent;
 	private Bundle bundle;
-	private QueryFragment fragment;
+	private SearchFragment fragment;
 
 	@Override
 	public void afterTextChanged(Editable s) {
@@ -100,7 +100,7 @@ public class QueryBrowserActivity extends BaseActivity implements Constants, Tex
 					intent.getStringExtra(MediaStore.EXTRA_MEDIA_TITLE));
 		}
 
-		fragment = new QueryFragment(bundle);
+		fragment = new SearchFragment(bundle);
 
 		getFragmentManager().beginTransaction().replace(android.R.id.content, fragment)
 				.commit();

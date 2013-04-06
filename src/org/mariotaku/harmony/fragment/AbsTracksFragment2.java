@@ -20,41 +20,27 @@
 
 package org.mariotaku.harmony.fragment;
 
-import org.mariotaku.harmony.Constants;
-import org.mariotaku.harmony.R;
-import org.mariotaku.harmony.adapter.TracksAdapter;
-import org.mariotaku.harmony.util.MusicUtils;
-import org.mariotaku.harmony.util.PreferencesEditor;
-
-import android.app.ListFragment;
-
-import android.app.SearchManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.app.LoaderManager.LoaderCallbacks;
+import android.content.ContentResolver;
+import android.content.CursorLoader;
+import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Audio;
 import android.provider.MediaStore.Audio.Genres;
 import android.provider.MediaStore.Audio.Playlists;
-import android.app.LoaderManager.LoaderCallbacks;
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.widget.SimpleCursorAdapter;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
+import android.provider.MediaStore.Audio;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.CursorAdapter;
-import android.content.ContentResolver;
+import com.mobeta.android.dslv.DragSortListView;
+import org.mariotaku.harmony.R;
+import org.mariotaku.harmony.adapter.TracksAdapter;
+import org.mariotaku.harmony.util.MusicUtils;
+import org.mariotaku.harmony.util.PreferencesEditor;
+import org.mariotaku.harmony.util.ServiceWrapper;
 
 public abstract class AbsTracksFragment2 extends BaseListFragment implements LoaderCallbacks<Cursor> {
 
@@ -62,10 +48,12 @@ public abstract class AbsTracksFragment2 extends BaseListFragment implements Loa
 			Audio.AudioColumns.ALBUM, Audio.AudioColumns.ARTIST, Audio.AudioColumns.ARTIST_ID, Audio.AudioColumns.DURATION };
 
 	private TracksAdapter mAdapter;
-	private ListView mListView;
+	private DragSortListView mListView;
 	long mPlaylistId = -1;
 
 	private ContentResolver mResolver;
+
+	private ServiceWrapper mService;
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -73,7 +61,6 @@ public abstract class AbsTracksFragment2 extends BaseListFragment implements Loa
 		mResolver = getActivity().getContentResolver();
 		mAdapter = new TracksAdapter(getActivity());
 		setListAdapter(mAdapter);
-		mListView = getListView();
 		getLoaderManager().initLoader(0, null, this);
 	}
 
@@ -101,8 +88,8 @@ public abstract class AbsTracksFragment2 extends BaseListFragment implements Loa
 				switch ((int) mPlaylistId) {
 					case (int) PLAYLIST_QUEUE:
 						uri = Audio.Media.EXTERNAL_CONTENT_URI;
-						final long[] queue = MusicUtils.getQueue();
-						if (queue.length == 0) return null;
+						final long[] queue = mService.getQueue();
+						if (queue.length == 0) break;
 						where = new StringBuilder();
 						where.append(MediaStore.Audio.Media._ID + " IN (");
 						if (queue == null || queue.length <= 0) return null;
@@ -179,7 +166,7 @@ public abstract class AbsTracksFragment2 extends BaseListFragment implements Loa
 
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
-
+		MusicUtils.playAll(getActivity(), mAdapter.getCursor());
 	}
 
 	@Override
@@ -190,6 +177,23 @@ public abstract class AbsTracksFragment2 extends BaseListFragment implements Loa
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 		mAdapter.changeCursor(data);
+	}
+	
+	@Override
+	public View onCreateView(final LayoutInflater inflater, final ViewGroup parent, final Bundle savedInstanceState) {
+		final View v = inflater.inflate(R.layout.tracks_browser, null);
+		mListView = (DragSortListView) v.findViewById(android.R.id.list);
+		return v;
+	}
+	
+	@Override
+	protected void onServiceConnected(final ServiceWrapper service) {
+		mService = service;
+	}
+
+	@Override
+	protected void onServiceDisconnected() {
+		mService = null;
 	}
 
 }

@@ -69,6 +69,7 @@ import android.widget.Toast;
 import android.media.audiofx.AudioEffect;
 import android.os.Bundle;
 import org.mariotaku.harmony.model.TrackInfo;
+import java.util.Arrays;
 
 /**
  * Provides "background" audio playback capabilities, allowing the user to
@@ -89,18 +90,14 @@ public class MusicPlaybackService extends Service implements Constants {
 	private static final int FADEDOWN = 5;
 	private static final int FADEUP = 6;
 
-	private static final int NEW_LYRICS_LOADED = 1;
-	private static final int POSITION_CHANGED = 2;
-	private static final int LYRICS_REFRESHED = 3;
-	private static final int LYRICS_PAUSED = 4;
-	private static final int LYRICS_RESUMED = 5;
-
 	private static final int START_SLEEP_TIMER = 1;
 	private static final int STOP_SLEEP_TIMER = 2;
 
 	private MultiPlayer mPlayer;
+	private ContentResolver mResolver;
+	private TelephonyManager mTelephonyManager;
 
-	private String mFileToPlay;
+	private TrackInfo mTrackInfo;
 	private NotificationManager mNotificationManager;
 	private int mShuffleMode = SHUFFLE_NONE;
 
@@ -109,7 +106,7 @@ public class MusicPlaybackService extends Service implements Constants {
 	private int mPlayListLen = 0;
 	private Vector<Integer> mHistory = new Vector<Integer>();
 
-	private Cursor mCursor;
+	//private Cursor mCursor;
 	private int mPlayPos = -1;
 
 	private final Shuffler mShuffler = new Shuffler();
@@ -147,10 +144,8 @@ public class MusicPlaybackService extends Service implements Constants {
 	private boolean mGentleSleepTimer, mSleepTimerTimedUp;
 	private long mCurrentTimestamp, mStopTimestamp;
 	
-	private boolean mScrobbleEnabled = false;
 	private boolean mExternalAudioDeviceConnected = false;
 
-	private Intent mPlaybackIntent;
 	private Handler mMediaplayerHandler = new Handler() {
 
 		@Override
@@ -379,14 +374,10 @@ public class MusicPlaybackService extends Service implements Constants {
 	}
 
 	public TrackInfo getTrackInfo() {
-		if (mCursor == null || mCursor.isClosed()) return null;
-		return new TrackInfo(mCursor);
+		return mTrackInfo;
 	}
 
 	public void addToFavorites() {
-		if (getAudioId() >= 0) {
-			addToFavorites(getAudioId());
-		}
 	}
 
 	public void addToFavorites(long id) {
@@ -425,8 +416,8 @@ public class MusicPlaybackService extends Service implements Constants {
 	 * Returns the duration of the file in milliseconds. Currently this method
 	 * returns -1 for the duration of MIDI files.
 	 */
-	public long duration() {
-		if (mPlayer.isInitialized()) return mPlayer.duration();
+	public long getDuration() {
+		if (mPlayer.isInitialized()) return mPlayer.getDuration();
 		return -1;
 	}
 
@@ -468,64 +459,6 @@ public class MusicPlaybackService extends Service implements Constants {
 		}
 	}
 
-	public Bitmap getAlbumArt() {
-
-		synchronized (this) {
-			return MusicUtils.getArtwork(this, getAudioId(), getAlbumId());
-		}
-	}
-
-	public long getAlbumId() {
-
-		synchronized (this) {
-			if (mCursor == null) return -1;
-			return mCursor.getLong(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID));
-		}
-	}
-
-	public String getAlbumName() {
-
-		synchronized (this) {
-			if (mCursor == null) return null;
-			return mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
-		}
-	}
-
-	public long getArtistId() {
-
-		synchronized (this) {
-			if (mCursor == null) return -1;
-			return mCursor.getLong(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID));
-		}
-	}
-
-	public String getArtistName() {
-
-		synchronized (this) {
-			if (mCursor == null) return null;
-			return mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
-		}
-	}
-
-	public Uri getArtworkUri() {
-
-		synchronized (this) {
-			return MusicUtils.getArtworkUri(this, getAudioId(), getAlbumId());
-		}
-	}
-
-	/**
-	 * Returns the rowid of the currently playing file, or -1 if no file is
-	 * currently playing.
-	 */
-	public long getAudioId() {
-
-		synchronized (this) {
-			if (mPlayPos >= 0 && mPlayer.isInitialized()) return mPlayList[mPlayPos];
-		}
-		return -1;
-	}
-
 	/**
 	 * Returns the audio session ID.
 	 */
@@ -537,37 +470,16 @@ public class MusicPlaybackService extends Service implements Constants {
 	}
 
 	/**
-	 * Returns the absolute path of the currently playing file, or null if no
-	 * file is currently playing.
-	 */
-	public String getMediaPath() {
-
-		synchronized (this) {
-			if (mCursor == null) return null;
-			return mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
-		}
-	}
-
-	/**
-	 * Returns the path of the currently playing file, or null if no file is
-	 * currently playing.
-	 */
-	public String getPath() {
-
-		return mFileToPlay;
-	}
-
-	/**
 	 * Returns the current play list
 	 * 
 	 * @return An array of integers containing the IDs of the tracks in the play
 	 *         list
 	 */
+	 //FIXME
 	public long[] getQueue() {
-
 		synchronized (this) {
-			int len = mPlayListLen;
-			long[] list = new long[len];
+			final int len = mPlayListLen;
+			final long[] list = new long[len];
 			for (int i = 0; i < len; i++) {
 				list[i] = mPlayList[i];
 			}
@@ -581,32 +493,20 @@ public class MusicPlaybackService extends Service implements Constants {
 	 * @return the position in the queue
 	 */
 	public int getQueuePosition() {
-
 		synchronized (this) {
 			return mPlayPos;
 		}
 	}
 
 	public int getRepeatMode() {
-
 		return mRepeatMode;
 	}
 
 	public int getShuffleMode() {
-
 		return mShuffleMode;
 	}
 
-	public String getTrackName() {
-
-		synchronized (this) {
-			if (mCursor == null) return null;
-			return mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
-		}
-	}
-
 	public boolean isFavorite() {
-		if (getAudioId() >= 0) return isFavorite(getAudioId());
 		return false;
 	}
 
@@ -621,7 +521,6 @@ public class MusicPlaybackService extends Service implements Constants {
 	 *         we're currently transitioning between tracks), false if not.
 	 */
 	public boolean isPlaying() {
-
 		return mIsSupposedToBePlaying;
 	}
 
@@ -776,11 +675,11 @@ public class MusicPlaybackService extends Service implements Constants {
 		// Needs to be done in this thread, since otherwise
 		// ApplicationContext.getPowerManager() crashes.
 		mPlayer = new MultiPlayer(this);
+		mResolver = getContentResolver();
 		mPlayer.setHandler(mMediaplayerHandler);
 
-		mPlaybackIntent = new Intent();
-
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
 		mAudioManager.registerMediaButtonEventReceiver(new ComponentName(getPackageName(),
 				MediaButtonIntentReceiver.class.getName()));
@@ -836,17 +735,14 @@ public class MusicPlaybackService extends Service implements Constants {
 
 		mAudioManager.abandonAudioFocus(mAudioFocusListener);
 
-		TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-		telephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
+		final TelephonyManager mTelephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+		mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
 
 		// make sure there aren't any other messages coming
 		mDelayedStopHandler.removeCallbacksAndMessages(null);
 		mMediaplayerHandler.removeCallbacksAndMessages(null);
 
-		if (mCursor != null) {
-			mCursor.close();
-			mCursor = null;
-		}
+		mTrackInfo = null;
 
 		unregisterReceiver(mIntentReceiver);
 		unregisterReceiver(mA2dpReceiver);
@@ -857,7 +753,6 @@ public class MusicPlaybackService extends Service implements Constants {
 		}
 		mWakeLock.release();
 		mNotificationManager.cancelAll();
-		removeStickyBroadcast(mPlaybackIntent);
 		super.onDestroy();
 	}
 
@@ -985,8 +880,8 @@ public class MusicPlaybackService extends Service implements Constants {
 	public void open(long[] list, int position) {
 
 		synchronized (this) {
-			long oldId = getAudioId();
-			int listlength = list.length;
+			final long oldId = mTrackInfo != null ? mTrackInfo.id : -1;
+			final int listlength = list.length;
 			boolean newlist = true;
 			if (mPlayListLen == listlength) {
 				// possible fast path: list might be the same
@@ -1008,10 +903,10 @@ public class MusicPlaybackService extends Service implements Constants {
 				mPlayPos = mShuffler.shuffle(mPlayListLen);
 			}
 			mHistory.clear();
-
 			saveBookmarkIfNeeded();
 			openCurrent();
-			if (oldId != getAudioId()) {
+			final long currentId = mTrackInfo != null ? mTrackInfo.id : -1;
+			if (oldId != currentId) {
 				notifyChange(BROADCAST_MEDIA_CHANGED);
 			}
 		}
@@ -1023,65 +918,35 @@ public class MusicPlaybackService extends Service implements Constants {
 	 * @param path
 	 *            The full path of the file to be opened.
 	 */
-	public void open(String path) {
-
-		synchronized (this) {
-			if (path == null) return;
-
-			// if mCursor is null, try to associate path with a database cursor
-			if (mCursor == null) {
-
-				ContentResolver resolver = getContentResolver();
-				Uri uri;
-				String where;
-				String selectionArgs[];
-				if (path.startsWith("content://media/")) {
-					uri = Uri.parse(path);
-					where = null;
-					selectionArgs = null;
-				} else {
-					uri = MediaStore.Audio.Media.getContentUriForPath(path);
-					where = MediaStore.Audio.Media.DATA + "=?";
-					selectionArgs = new String[] { path };
-				}
-
-				try {
-					mCursor = resolver.query(uri, CURSOR_COLUMNS, where, selectionArgs, null);
-					if (mCursor != null) {
-						if (mCursor.getCount() == 0) {
-							mCursor.close();
-							mCursor = null;
-						} else {
-							mCursor.moveToNext();
-							ensurePlayListCapacity(1);
-							mPlayListLen = 1;
-							mPlayList[0] = mCursor.getLong(IDCOLIDX);
-							mPlayPos = 0;
-						}
-					}
-				} catch (UnsupportedOperationException ex) {
-				}
+	public synchronized void openUri(final Uri uri) {
+		mTrackInfo = null;
+		if (uri == null) return;
+		final Cursor cur = mResolver.query(uri, CURSOR_COLUMNS, null, null, null);
+		if (cur == null) return;
+		if (cur.getCount() > 0) {
+			cur.moveToFirst();
+			mTrackInfo = new TrackInfo(cur);
+		}
+		cur.close();
+		if (mTrackInfo == null) return;
+		mPlayer.setDataSource(mTrackInfo.data);
+		if (!mPlayer.isInitialized()) {
+			stop(true);
+			if (mOpenFailedCounter++ < 10 && mPlayListLen > 1) {
+				// beware: this ends up being recursive because next() calls
+				// open() again.
+				next(false);
 			}
-			mFileToPlay = path;
-			mPlayer.setDataSource(mFileToPlay);
-			if (!mPlayer.isInitialized()) {
-				stop(true);
-				if (mOpenFailedCounter++ < 10 && mPlayListLen > 1) {
-					// beware: this ends up being recursive because next() calls
-					// open() again.
-					next(false);
-				}
-				if (!mPlayer.isInitialized() && mOpenFailedCounter != 0) {
-					// need to make sure we only shows this once
-					mOpenFailedCounter = 0;
-					if (!mQuietMode) {
-						Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
-					}
-					Log.d(LOGTAG_SERVICE, "Failed to open file for playback");
-				}
-			} else {
+			if (!mPlayer.isInitialized() && mOpenFailedCounter != 0) {
+				// need to make sure we only shows this once
 				mOpenFailedCounter = 0;
+				if (!mQuietMode) {
+					Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
+				}
+				Log.d(LOGTAG_SERVICE, "Failed to open file for playback");
 			}
+		} else {
+			mOpenFailedCounter = 0;
 		}
 	}
 
@@ -1107,25 +972,25 @@ public class MusicPlaybackService extends Service implements Constants {
 	 * Starts playback of a previously opened file.
 	 */
 	public void play() {
+		if (mTrackInfo == null) return;
 
 		CharSequence contentTitle, contentText = null;
 		
 
-		TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-		if (telephonyManager.getCallState() == TelephonyManager.CALL_STATE_OFFHOOK) return;
+		if (mTelephonyManager.getCallState() == TelephonyManager.CALL_STATE_OFFHOOK) return;
 
 		mAudioManager.requestAudioFocus(mAudioFocusListener, AudioManager.STREAM_MUSIC,
 				AudioManager.AUDIOFOCUS_GAIN);
 		mAudioManager.registerMediaButtonEventReceiver(new ComponentName(getPackageName(),
 				MediaButtonIntentReceiver.class.getName()));
 
-		telephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+		mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
 
 		if (mPlayer.isInitialized()) {
 			// if we are at the end of the song, go to the next song first
-			long duration = mPlayer.duration();
+			long duration = mPlayer.getDuration();
 			if (mRepeatMode != REPEAT_CURRENT && duration > 2000
-					&& mPlayer.position() >= duration - 2000) {
+					&& mPlayer.getPosition() >= duration - 2000) {
 				next(true);
 			}
 
@@ -1136,14 +1001,14 @@ public class MusicPlaybackService extends Service implements Constants {
 			// of another focus loss
 			mMediaplayerHandler.removeMessages(FADEDOWN);
 			mMediaplayerHandler.sendEmptyMessage(FADEUP);
+			
+			contentTitle = mTrackInfo.title;
 
-			contentTitle = getTrackName();
+			String artist = mTrackInfo.artist;
+			boolean isUnknownArtist = TrackInfo.isUnknownArtist(mTrackInfo);
 
-			String artist = getArtistName();
-			boolean isUnknownArtist = artist == null || MediaStore.UNKNOWN_STRING.equals(artist);
-
-			String album = getAlbumName();
-			boolean isUnknownAlbum = album == null || MediaStore.UNKNOWN_STRING.equals(album);
+			String album = mTrackInfo.album;
+			boolean isUnknownAlbum = TrackInfo.isUnknownAlbum(mTrackInfo);
 
 			if (!isUnknownArtist && !isUnknownAlbum) {
 				contentText = getString(R.string.notification_artist_album, artist, album);
@@ -1177,11 +1042,10 @@ public class MusicPlaybackService extends Service implements Constants {
 	/**
 	 * Returns the current playback position in milliseconds
 	 */
-	public long position() {
-
-		if (mPlayer.isInitialized()) return mPlayer.position();
+	public long getPosition() {
+		if (mPlayer.isInitialized()) return mPlayer.getPosition();
 		return -1;
-	};
+	}
 
 	public void prev() {
 
@@ -1221,9 +1085,9 @@ public class MusicPlaybackService extends Service implements Constants {
 				}
 			}
 		};
-		IntentFilter iFilter = new IntentFilter();
-		iFilter.addAction(BROADCAST_PLAYSTATUS_REQUEST);
-		registerReceiver(mA2dpReceiver, iFilter);
+		final IntentFilter filter = new IntentFilter();
+		filter.addAction(BROADCAST_PLAYSTATUS_REQUEST);
+		registerReceiver(mA2dpReceiver, filter);
 	}
 
 	/**
@@ -1233,7 +1097,6 @@ public class MusicPlaybackService extends Service implements Constants {
 	 * open.
 	 */
 	public void registerExternalStorageListener() {
-
 		if (mUnmountReceiver == null) {
 			mUnmountReceiver = new BroadcastReceiver() {
 
@@ -1246,7 +1109,7 @@ public class MusicPlaybackService extends Service implements Constants {
 						mQueueIsSaveable = false;
 						closeExternalStorageFiles(intent.getData().getPath());
 					} else if (action.equals(Intent.ACTION_MEDIA_MOUNTED)) {
-						mCardId = MusicUtils.getCardId(MusicPlaybackService.this);
+						mCardId = MusicUtils.getCardId(context);
 						reloadQueue();
 						mQueueIsSaveable = true;
 						notifyChange(BROADCAST_QUEUE_CHANGED);
@@ -1254,18 +1117,15 @@ public class MusicPlaybackService extends Service implements Constants {
 					}
 				}
 			};
-			IntentFilter iFilter = new IntentFilter();
-			iFilter.addAction(Intent.ACTION_MEDIA_EJECT);
-			iFilter.addAction(Intent.ACTION_MEDIA_MOUNTED);
-			iFilter.addDataScheme("file");
-			registerReceiver(mUnmountReceiver, iFilter);
+			final IntentFilter filter = new IntentFilter();
+			filter.addAction(Intent.ACTION_MEDIA_EJECT);
+			filter.addAction(Intent.ACTION_MEDIA_MOUNTED);
+			filter.addDataScheme(ContentResolver.SCHEME_FILE);
+			registerReceiver(mUnmountReceiver, filter);
 		}
 	}
 
 	public void removeFromFavorites() {
-		if (getAudioId() >= 0) {
-			removeFromFavorites(getAudioId());
-		}
 	}
 
 	public void removeFromFavorites(long id) {
@@ -1329,8 +1189,8 @@ public class MusicPlaybackService extends Service implements Constants {
 			if (pos < 0) {
 				pos = 0;
 			}
-			if (pos > mPlayer.duration()) {
-				pos = mPlayer.duration();
+			if (pos > mPlayer.getDuration()) {
+				pos = mPlayer.getDuration();
 			}
 			long result = mPlayer.seek(pos);
 			notifyChange(BROADCAST_SEEK_CHANGED);
@@ -1427,7 +1287,6 @@ public class MusicPlaybackService extends Service implements Constants {
 	}
 
 	public void toggleShuffle() {
-
 		if (mShuffleMode == SHUFFLE_NONE) {
 			setShuffleMode(SHUFFLE_NORMAL);
 			if (mRepeatMode == REPEAT_CURRENT) {
@@ -1443,8 +1302,7 @@ public class MusicPlaybackService extends Service implements Constants {
 
 	// insert the list of songs at the specified position in the playlist
 	private void addToPlayList(long[] list, int position) {
-
-		int addlen = list.length;
+		final int addlen = list.length;
 		if (position < 0) { // overwrite
 			mPlayListLen = 0;
 			position = 0;
@@ -1455,7 +1313,7 @@ public class MusicPlaybackService extends Service implements Constants {
 		}
 
 		// move part of list after insertion point
-		int tailsize = mPlayListLen - position;
+		final int tailsize = mPlayListLen - position;
 		for (int i = tailsize; i > 0; i--) {
 			mPlayList[position + i] = mPlayList[position + i - addlen];
 		}
@@ -1466,8 +1324,7 @@ public class MusicPlaybackService extends Service implements Constants {
 		}
 		mPlayListLen += addlen;
 		if (mPlayListLen == 0) {
-			mCursor.close();
-			mCursor = null;
+			mTrackInfo = null;
 			notifyChange(BROADCAST_MEDIA_CHANGED);
 		}
 	}
@@ -1488,11 +1345,7 @@ public class MusicPlaybackService extends Service implements Constants {
 	}
 
 	private long getBookmark() {
-
-		synchronized (this) {
-			if (mCursor == null) return 0;
-			return mCursor.getLong(BOOKMARKCOLIDX);
-		}
+		return 0;
 	}
 
 	private long getSleepTimerRemained() {
@@ -1514,11 +1367,7 @@ public class MusicPlaybackService extends Service implements Constants {
 	}
 
 	private boolean isPodcast() {
-
-		synchronized (this) {
-			if (mCursor == null) return false;
-			return mCursor.getInt(PODCASTCOLIDX) > 0;
-		}
+		return false;
 	}
 
 	/**
@@ -1535,26 +1384,27 @@ public class MusicPlaybackService extends Service implements Constants {
 	 * play-state changed (paused/resumed).
 	 */
 	private void notifyChange(String action) {
-
-		mPlaybackIntent.setAction(action);
-		mPlaybackIntent.putExtra(BROADCAST_KEY_ID, getAudioId());
-		mPlaybackIntent.putExtra(BROADCAST_KEY_ARTIST, getArtistName());
-		mPlaybackIntent.putExtra(BROADCAST_KEY_ALBUM, getAlbumName());
-		mPlaybackIntent.putExtra(BROADCAST_KEY_TRACK, getTrackName());
-		mPlaybackIntent.putExtra(BROADCAST_KEY_PLAYING, isPlaying());
-		mPlaybackIntent.putExtra(BROADCAST_KEY_ISFAVORITE, isFavorite());
-		mPlaybackIntent.putExtra(BROADCAST_KEY_SONGID, getAudioId());
-		mPlaybackIntent.putExtra(BROADCAST_KEY_ALBUMID, getAlbumId());
-		mPlaybackIntent.putExtra(BROADCAST_KEY_DURATION, duration());
-		mPlaybackIntent.putExtra(BROADCAST_KEY_POSITION, position());
-		mPlaybackIntent.putExtra(BROADCAST_KEY_SHUFFLEMODE, getShuffleMode());
-		mPlaybackIntent.putExtra(BROADCAST_KEY_REPEATMODE, getRepeatMode());
-		if (mPlayList != null) {
-			mPlaybackIntent.putExtra(BROADCAST_KEY_LISTSIZE, Long.valueOf(mPlayList.length));
-		} else {
-			mPlaybackIntent.putExtra(BROADCAST_KEY_LISTSIZE, Long.valueOf(mPlayListLen));
+		final Intent intent = new Intent(action);
+		final TrackInfo track = getTrackInfo();
+		if (track != null) {
+		intent.putExtra(BROADCAST_KEY_ID, track.id);
+		intent.putExtra(BROADCAST_KEY_ARTIST, track.artist);
+		intent.putExtra(BROADCAST_KEY_ALBUM, track.album);
+		intent.putExtra(BROADCAST_KEY_TRACK, track.title);
+		intent.putExtra(BROADCAST_KEY_SONGID, track.id);
+		intent.putExtra(BROADCAST_KEY_ALBUMID, track.album_id);
+		intent.putExtra(BROADCAST_KEY_PLAYING, isPlaying());
+		intent.putExtra(BROADCAST_KEY_DURATION, getDuration());
+		intent.putExtra(BROADCAST_KEY_POSITION, getPosition());
+		intent.putExtra(BROADCAST_KEY_SHUFFLEMODE, getShuffleMode());
+		intent.putExtra(BROADCAST_KEY_REPEATMODE, getRepeatMode());
 		}
-		sendStickyBroadcast(mPlaybackIntent);
+		if (mPlayList != null) {
+			intent.putExtra(BROADCAST_KEY_LISTSIZE, Long.valueOf(mPlayList.length));
+		} else {
+			intent.putExtra(BROADCAST_KEY_LISTSIZE, Long.valueOf(mPlayListLen));
+		}
+		sendBroadcast(intent);
 
 		if (BROADCAST_MEDIA_CHANGED.equals(action)) {
 			if (isPlaying()) {
@@ -1562,8 +1412,7 @@ public class MusicPlaybackService extends Service implements Constants {
 			} else {
 				sendScrobbleBroadcast(SCROBBLE_PLAYSTATE_COMPLETE);
 			}
-		}
-		if (BROADCAST_PLAYSTATE_CHANGED.equals(action)) {
+		} else if (BROADCAST_PLAYSTATE_CHANGED.equals(action)) {
 			if (isPlaying()) {
 				sendScrobbleBroadcast(SCROBBLE_PLAYSTATE_RESUME);
 			} else {
@@ -1577,32 +1426,18 @@ public class MusicPlaybackService extends Service implements Constants {
 		}
 	}
 
-	private void openCurrent() {
-
-		synchronized (this) {
-			if (mCursor != null) {
-				mCursor.close();
-				mCursor = null;
-			}
-
-			if (mPlayListLen == 0) return;
-			stop(false);
-
-			String id = String.valueOf(mPlayList[mPlayPos]);
-
-			mCursor = getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-					CURSOR_COLUMNS, "_id=" + id, null, null);
-			if (mCursor != null) {
-				mCursor.moveToFirst();
-				open(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI + "/" + id);
-				// go to bookmark if needed
-				if (isPodcast()) {
-					long bookmark = getBookmark();
-					// Start playing a little bit before the bookmark,
-					// so it's easier to get back in to the narrative.
-					seek(bookmark - 5000);
-				}
-			}
+	private synchronized void openCurrent() {
+		mTrackInfo = null;
+		stop(false);
+		if (mPlayListLen == 0) return;
+		final long id = mPlayList[mPlayPos];
+		openUri(ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id));
+		// go to bookmark if needed
+		if (isPodcast()) {
+			final long bookmark = getBookmark();
+			// Start playing a little bit before the bookmark,
+			// so it's easier to get back in to the narrative.
+			seek(bookmark - 5000);
 		}
 	}
 
@@ -1685,9 +1520,9 @@ public class MusicPlaybackService extends Service implements Constants {
 			}
 
 			long seekpos = mPrefs.getLongState(STATE_KEY_SEEKPOS, 0);
-			seek(seekpos >= 0 && seekpos < duration() ? seekpos : 0);
-			Log.d(LOGTAG_SERVICE, "restored queue, currently at position " + position() + "/"
-					+ duration() + " (requested " + seekpos + ")");
+			seek(seekpos >= 0 && seekpos < getDuration() ? seekpos : 0);
+			Log.d(LOGTAG_SERVICE, "restored queue, currently at position " + getPosition() + "/"
+					+ getDuration() + " (requested " + seekpos + ")");
 
 			int repmode = mPrefs.getIntState(STATE_KEY_REPEATMODE, REPEAT_NONE);
 			if (repmode != REPEAT_ALL && repmode != REPEAT_CURRENT) {
@@ -1768,15 +1603,11 @@ public class MusicPlaybackService extends Service implements Constants {
 				if (mPlayListLen == 0) {
 					stop(true);
 					mPlayPos = -1;
-					if (mCursor != null) {
-						mCursor.close();
-						mCursor = null;
-					}
 				} else {
 					if (mPlayPos >= mPlayListLen) {
 						mPlayPos = 0;
 					}
-					boolean wasPlaying = isPlaying();
+					final boolean wasPlaying = isPlaying();
 					stop(false);
 					openCurrent();
 					if (wasPlaying) {
@@ -1793,9 +1624,9 @@ public class MusicPlaybackService extends Service implements Constants {
 
 		try {
 			if (isPodcast()) {
-				long pos = position();
+				long pos = getPosition();
 				long bookmark = getBookmark();
-				long duration = duration();
+				long duration = getDuration();
 				if (pos < bookmark && pos + 10000 > bookmark || pos > bookmark
 						&& pos - 10000 < bookmark) // The existing bookmark is
 													// close to the current
@@ -1810,8 +1641,8 @@ public class MusicPlaybackService extends Service implements Constants {
 				ContentValues values = new ContentValues();
 				values.put(MediaStore.Audio.Media.BOOKMARK, pos);
 				Uri uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-						mCursor.getLong(IDCOLIDX));
-				getContentResolver().update(uri, values, null, null);
+						mTrackInfo.id);
+				mResolver.update(uri, values, null, null);
 			}
 		} catch (SQLiteException ex) {
 		}
@@ -1873,7 +1704,7 @@ public class MusicPlaybackService extends Service implements Constants {
 		}
 		mPrefs.setIntState(STATE_KEY_CURRPOS, mPlayPos);
 		if (mPlayer.isInitialized()) {
-			mPrefs.setLongState(STATE_KEY_SEEKPOS, mPlayer.position());
+			mPrefs.setLongState(STATE_KEY_SEEKPOS, mPlayer.getPosition());
 		}
 
 		mPrefs.setIntState(STATE_KEY_REPEATMODE, mRepeatMode);
@@ -1884,30 +1715,18 @@ public class MusicPlaybackService extends Service implements Constants {
 	}
 
 	private void sendScrobbleBroadcast(int state) {
-
-		mScrobbleEnabled = mPrefs.getBooleanPref(KEY_ENABLE_SCROBBLING, false);
-
-		// check that state is a valid state
-		if (state != SCROBBLE_PLAYSTATE_START && state != SCROBBLE_PLAYSTATE_RESUME
-				&& state != SCROBBLE_PLAYSTATE_PAUSE && state != SCROBBLE_PLAYSTATE_COMPLETE)
-			return;
-
-		if (mScrobbleEnabled) {
-			Intent i = new Intent(SCROBBLE_SLS_API);
-
-			i.putExtra(BROADCAST_KEY_APP_NAME, getString(R.string.app_name));
-			i.putExtra(BROADCAST_KEY_APP_PACKAGE, getPackageName());
-
-			i.putExtra(BROADCAST_KEY_STATE, state);
-
-			i.putExtra(BROADCAST_KEY_ARTIST, getArtistName());
-			i.putExtra(BROADCAST_KEY_ALBUM, getAlbumName());
-			i.putExtra(BROADCAST_KEY_TRACK, getTrackName());
-			i.putExtra(BROADCAST_KEY_DURATION, (int) (duration() / 1000));
-
-			sendBroadcast(i);
-		}
-
+		final boolean enabled = mPrefs.getBooleanPref(KEY_ENABLE_SCROBBLING, false);
+		final TrackInfo track = getTrackInfo();
+		if (!enabled || track == null) return;
+		final Intent i = new Intent(SCROBBLE_SLS_API);
+		i.putExtra(BROADCAST_KEY_APP_NAME, getString(R.string.app_name));
+		i.putExtra(BROADCAST_KEY_APP_PACKAGE, getPackageName());
+		i.putExtra(BROADCAST_KEY_STATE, state);
+		i.putExtra(BROADCAST_KEY_ARTIST, track.artist);
+		i.putExtra(BROADCAST_KEY_ALBUM, track.album);
+		i.putExtra(BROADCAST_KEY_TRACK, track.title);
+		i.putExtra(BROADCAST_KEY_DURATION, (int) (getDuration() / 1000));
+		sendBroadcast(i);
 	}
 
 	private void startSleepTimer(long milliseconds, boolean gentle) {
@@ -1933,12 +1752,8 @@ public class MusicPlaybackService extends Service implements Constants {
 		mGentleSleepTimer = gentle;
 		mNotificationManager.notify(ID_NOTIFICATION_SLEEPTIMER, notification);
 		mSleepTimerHandler.sendEmptyMessageDelayed(START_SLEEP_TIMER, milliseconds);
-		Toast.makeText(
-				this,
-				getResources().getQuantityString(R.plurals.NNNminutes_notif,
-						Integer.valueOf((int) milliseconds / 60 / 1000),
-						Integer.valueOf((int) milliseconds / 60 / 1000)), Toast.LENGTH_SHORT)
-				.show();
+		final int nmin = (int) milliseconds / 60 / 1000;
+		Toast.makeText(this, getResources().getQuantityString(R.plurals.NNNminutes_notif, nmin, nmin), Toast.LENGTH_SHORT).show();
 	}
 
 	private void stop(boolean remove_status_icon) {
@@ -1946,11 +1761,7 @@ public class MusicPlaybackService extends Service implements Constants {
 		if (mPlayer.isInitialized()) {
 			mPlayer.stop();
 		}
-		mFileToPlay = null;
-		if (mCursor != null) {
-			mCursor.close();
-			mCursor = null;
-		}
+		mTrackInfo = null;
 		if (remove_status_icon) {
 			gotoIdleState();
 		} else {
@@ -1965,21 +1776,6 @@ public class MusicPlaybackService extends Service implements Constants {
 
 		mSleepTimerHandler.sendEmptyMessage(STOP_SLEEP_TIMER);
 		Toast.makeText(this, R.string.sleep_timer_disabled, Toast.LENGTH_SHORT).show();
-	}
-
-	@Override
-	protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
-
-		writer.println("" + mPlayListLen + " items in queue, currently at index " + mPlayPos);
-		writer.println("Currently loaded:");
-		writer.println(getArtistName());
-		writer.println(getAlbumName());
-		writer.println(getTrackName());
-		writer.println(getPath());
-		writer.println("playing: " + mIsSupposedToBePlaying);
-		writer.println("actual: " + mPlayer.isPlaying());
-		writer.println("shuffle mode: " + mShuffleMode);
-		MusicUtils.debugDump(writer);
 	}
 
 	/**
@@ -2048,7 +1844,7 @@ public class MusicPlaybackService extends Service implements Constants {
 			mContext.sendBroadcast(intent);
 		}
 
-		public long duration() {
+		public long getDuration() {
 			return mMediaPlayer.getDuration();
 		}
 
@@ -2068,7 +1864,7 @@ public class MusicPlaybackService extends Service implements Constants {
 			mMediaPlayer.pause();
 		}
 
-		public long position() {
+		public long getPosition() {
 			return mMediaPlayer.getCurrentPosition();
 		}
 
@@ -2165,18 +1961,12 @@ public class MusicPlaybackService extends Service implements Constants {
 	 * ensure that the Service can be GCd even when the system process still has
 	 * a remote reference to the stub.
 	 */
-	static class ServiceStub extends IMusicPlaybackService.Stub {
+	private static class ServiceStub extends IMusicPlaybackService.Stub {
 
-		WeakReference<MusicPlaybackService> mService;
+		private final WeakReference<MusicPlaybackService> mService;
 
-		ServiceStub(MusicPlaybackService service) {
-
+		ServiceStub(final MusicPlaybackService service) {
 			mService = new WeakReference<MusicPlaybackService>(service);
-		}
-
-		@Override
-		public void addToFavorites(long id) {
-			mService.get().addToFavorites(id);
 		}
 
 		@Override
@@ -2186,7 +1976,7 @@ public class MusicPlaybackService extends Service implements Constants {
 
 		@Override
 		public long getDuration() {
-			return mService.get().duration();
+			return mService.get().getDuration();
 		}
 
 		@Override
@@ -2230,11 +2020,6 @@ public class MusicPlaybackService extends Service implements Constants {
 		}
 
 		@Override
-		public boolean isFavorite(long id) {
-			return mService.get().isFavorite(id);
-		}
-
-		@Override
 		public boolean isPlaying() {
 			return mService.get().isPlaying();
 		}
@@ -2255,11 +2040,6 @@ public class MusicPlaybackService extends Service implements Constants {
 		}
 
 		@Override
-		public void openFile(String path) {
-			mService.get().open(path);
-		}
-
-		@Override
 		public void pause() {
 			mService.get().pause();
 		}
@@ -2271,17 +2051,12 @@ public class MusicPlaybackService extends Service implements Constants {
 
 		@Override
 		public long getPosition() {
-			return mService.get().position();
+			return mService.get().getPosition();
 		}
 
 		@Override
 		public void prev() {
 			mService.get().prev();
-		}
-
-		@Override
-		public void removeFromFavorites(long id) {
-			mService.get().removeFromFavorites(id);
 		}
 
 		@Override
@@ -2332,11 +2107,6 @@ public class MusicPlaybackService extends Service implements Constants {
 		@Override
 		public void stopSleepTimer() {
 			mService.get().stopSleepTimer();
-		}
-
-		@Override
-		public void toggleFavorite() {
-			mService.get().toggleFavorite();
 		}
 
 		@Override

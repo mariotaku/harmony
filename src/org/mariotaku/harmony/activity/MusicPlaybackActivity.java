@@ -64,6 +64,7 @@ import org.mariotaku.harmony.app.HarmonyApplication;
 import org.mariotaku.harmony.fragment.LyricsFragment;
 import android.content.Context;
 import android.app.Activity;
+import org.mariotaku.harmony.fragment.QueueFragment;
 
 public class MusicPlaybackActivity extends BaseActivity implements Constants, View.OnClickListener, SeekBar.OnSeekBarChangeListener,
  		ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener {
@@ -87,6 +88,8 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 
 	public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
 		if (position == 0) {
+			mViewPager.setBackgroundColor(Color.argb((int) (0x80 * (1 - positionOffset)), 0, 0, 0));
+		} else if (position == 1) {
 			mViewPager.setBackgroundColor(Color.argb((int) (0x80 * positionOffset), 0, 0, 0));
 		} else {
 			mViewPager.setBackgroundColor(0x80000000);
@@ -94,7 +97,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	}
 
 	public void onPageSelected(final int position) {
-		mViewPager.setBackgroundColor(position == 0 ? Color.TRANSPARENT : 0x80000000);
+		mViewPager.setBackgroundColor(position == 1 ? Color.TRANSPARENT : 0x80000000);
 	}
 
 	public void onPageScrollStateChanged(final int state) {
@@ -236,10 +239,12 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		mDeviceHasDpad = getResources().getConfiguration().navigation == Configuration.NAVIGATION_DPAD;
 
 		mAdapter = new PagerAdapter(this);
+		mViewPager.setAdapter(mAdapter);
+		mAdapter.addFragment(QueueFragment.class);
 		mAdapter.addFragment(Fragment.class);
 		mAdapter.addFragment(LyricsFragment.class);
-		mViewPager.setAdapter(mAdapter);
 		mViewPager.setOnPageChangeListener(this);
+		mViewPager.setCurrentItem(1, false);
 	}
 
 	@Override
@@ -661,7 +666,6 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 
 	private void toggleFavorite() {
 		if (mService == null) return;
-		mService.toggleFavorite();
 	}
 
 	
@@ -677,6 +681,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	private void updateTrackInfo() {
 		if (mService == null) return;
 		final TrackInfo track = mService.getTrackInfo();
+		if (track == null) return;
 		final AlbumInfo album = AlbumInfo.getAlbumInfo(this, track);
 		mTrackName.setText(track.title);
 		if (!TrackInfo.isUnknownArtist(track)) {

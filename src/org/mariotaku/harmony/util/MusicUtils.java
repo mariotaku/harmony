@@ -75,7 +75,7 @@ import org.mariotaku.harmony.model.TrackInfo;
 
 public class MusicUtils implements Constants {
 
-	public static IMusicPlaybackService mService = null;
+	public static IMusicPlaybackService sService = null;
 
 	private final static long[] mEmptyList = new long[0];
 
@@ -93,41 +93,19 @@ public class MusicUtils implements Constants {
 
 	private static final Object[] sTimeArgs = new Object[5];
 
-	private static final BitmapFactory.Options mBitmapOptionsCache = new BitmapFactory.Options();
-
-	private static final BitmapFactory.Options mBitmapOptions = new BitmapFactory.Options();
-
 	public static final Uri ALBUMART_URI = Uri.parse("content://media/external/audio/albumart");
-
-	private static final HashMap<Long, Bitmap> mArtBitmapCache = new HashMap<Long, Bitmap>();
-
-	private static final HashMap<Long, Drawable> mArtCache = new HashMap<Long, Drawable>();
-
-	private static int mArtCacheId = -1;
-
-	static {
-		// for the cache,
-		// 565 is faster to decode and display
-		// and we don't want to dither here because the image will be scaled
-		// down later
-		mBitmapOptionsCache.inPreferredConfig = Bitmap.Config.RGB_565;
-		mBitmapOptionsCache.inDither = false;
-
-		mBitmapOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
-		mBitmapOptions.inDither = false;
-	}
 
 	private static LogEntry[] mMusicLog = new LogEntry[100];
 
 	private static int mLogPtr = 0;
 
 	private static Time mTime = new Time();
-
+	
 	public static void addToCurrentPlaylist(Context context, long[] list) {
 
-		if (mService == null) return;
+		if (sService == null) return;
 		try {
-			mService.enqueue(list, MusicPlaybackService.ACTION_LAST);
+			sService.enqueue(list, MusicPlaybackService.ACTION_LAST);
 			String message = context.getResources().getQuantityString(
 					R.plurals.NNNtrackstoplaylist, list.length, Integer.valueOf(list.length));
 			Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
@@ -210,13 +188,6 @@ public class MusicUtils implements Constants {
 		}
 	}
 
-	public static void clearAlbumArtCache() {
-
-		synchronized (mArtBitmapCache) {
-			mArtBitmapCache.clear();
-		}
-	}
-
 	public static void clearPlaylist(Context context, int plid) {
 
 		Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external", plid);
@@ -226,10 +197,10 @@ public class MusicUtils implements Constants {
 
 	public static void clearQueue() {
 
-		if (mService == null) return;
+		if (sService == null) return;
 
 		try {
-			mService.removeTracks(0, Integer.MAX_VALUE);
+			sService.removeTracks(0, Integer.MAX_VALUE);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -351,12 +322,8 @@ public class MusicUtils implements Constants {
 				while (!c.isAfterLast()) {
 					// remove from current playlist
 					long id = c.getLong(0);
-					mService.removeTrack(id);
+					sService.removeTrack(id);
 					// remove from album art cache
-					long artIndex = c.getLong(2);
-					synchronized (mArtBitmapCache) {
-						mArtBitmapCache.remove(artIndex);
-					}
 					c.moveToNext();
 				}
 			} catch (RemoteException ex) {
@@ -467,151 +434,6 @@ public class MusicUtils implements Constants {
 
 	}
 
-	/**
-	 * Get album art for specified album. You should not pass in the album id
-	 * for the "unknown" album here (use -1 instead) This method always returns
-	 * the default album art icon when no album art is found.
-	 */
-	public static Bitmap getArtwork(Context context, long song_id, long album_id) {
-		return getArtwork(context, song_id, album_id, true);
-	}
-
-	/**
-	 * Get album art for specified album. You should not pass in the album id
-	 * for the "unknown" album here (use -1 instead)
-	 */
-	public static Bitmap getArtwork(Context context, long song_id, long album_id,
-			boolean allowdefault) {
-
-		if (album_id < 0) {
-			// This is something that is not in the database, so get the album
-			// art directly
-			// from the file.
-			if (song_id >= 0) {
-				Bitmap bm = getArtworkFromFile(context, song_id, -1);
-				if (bm != null) return bm;
-			}
-			if (allowdefault) return getDefaultArtwork(context);
-			return null;
-		}
-
-		ContentResolver res = context.getContentResolver();
-		Uri uri = ContentUris.withAppendedId(ALBUMART_URI, album_id);
-		if (uri != null) {
-			InputStream in = null;
-			try {
-				in = res.openInputStream(uri);
-				return BitmapFactory.decodeStream(in, null, mBitmapOptions);
-			} catch (FileNotFoundException ex) {
-				// The album art thumbnail does not actually exist. Maybe the
-				// user deleted it, or
-				// maybe it never existed to begin with.
-				Bitmap bm = getArtworkFromFile(context, song_id, album_id);
-				if (bm != null) {
-					if (bm.getConfig() == null) {
-						bm = bm.copy(Bitmap.Config.ARGB_8888, false);
-						if (bm == null && allowdefault) return getDefaultArtwork(context);
-					}
-				} else if (allowdefault) {
-					bm = getDefaultArtwork(context);
-				}
-				return bm;
-			} finally {
-				try {
-					if (in != null) {
-						in.close();
-					}
-				} catch (IOException ex) {
-				}
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * Get album art for specified album. This method will not try to fall back
-	 * to getting artwork directly from the file, nor will it attempt to repair
-	 * the database.
-	 * 
-	 * @param context
-	 * @param album_id
-	 * @param w
-	 * @param h
-	 * @return
-	 */
-	public static Bitmap getArtworkQuick(Context context, long album_id, int w, int h) {
-
-		/*
-		 * NOTE: There is in fact a 1 pixel border on the right side in the
-		 * ImageView used to display this drawable. Take it into account now, so
-		 * we don't have to scale later.
-		 */
-
-		w -= 1;
-		ContentResolver res = context.getContentResolver();
-		Uri uri = ContentUris.withAppendedId(ALBUMART_URI, album_id);
-		if (uri != null) {
-			ParcelFileDescriptor fd = null;
-			try {
-				fd = res.openFileDescriptor(uri, "r");
-				int sampleSize = 1;
-
-				// Compute the closest power-of-two scale factor
-				// and pass that to mBitmapOptionsCache.inSampleSize, which will
-				// result in faster decoding and better quality
-				mBitmapOptionsCache.inJustDecodeBounds = true;
-				BitmapFactory.decodeFileDescriptor(fd.getFileDescriptor(), null,
-						mBitmapOptionsCache);
-				int nextWidth = mBitmapOptionsCache.outWidth >> 1;
-				int nextHeight = mBitmapOptionsCache.outHeight >> 1;
-				while (nextWidth > w && nextHeight > h) {
-					sampleSize <<= 1;
-					nextWidth >>= 1;
-					nextHeight >>= 1;
-				}
-
-				mBitmapOptionsCache.inSampleSize = sampleSize;
-				mBitmapOptionsCache.inJustDecodeBounds = false;
-				Bitmap b = BitmapFactory.decodeFileDescriptor(fd.getFileDescriptor(), null,
-						mBitmapOptionsCache);
-
-				if (b != null) {
-					// finally rescale to exactly the size we need
-					if (mBitmapOptionsCache.outWidth != w || mBitmapOptionsCache.outHeight != h) {
-
-						int value = 0;
-						if (b.getHeight() <= b.getWidth()) {
-							value = b.getHeight();
-						} else {
-							value = b.getWidth();
-						}
-
-						Bitmap tmp = Bitmap.createBitmap(b, (b.getWidth() - value) / 2,
-								(b.getHeight() - value) / 2, value, value);
-						// Bitmap.createScaledBitmap() can return the same
-						// bitmap
-						if (tmp != b) {
-							b.recycle();
-						}
-						b = tmp;
-					}
-				}
-
-				return b;
-			} catch (FileNotFoundException e) {
-			} finally {
-				try {
-					if (fd != null) {
-						fd.close();
-					}
-				} catch (IOException e) {
-				}
-			}
-		}
-		return null;
-	}
-
 	public static Uri getArtworkUri(Context context, long album_id) {
 		return getArtworkUri(context, -1, album_id);
 	}
@@ -694,56 +516,6 @@ public class MusicUtils implements Constants {
 		return builder.toString();
 	}
 
-	public static Drawable getCachedArtwork(Context context, long index,
-			BitmapDrawable defaultArtwork) {
-		Drawable d = null;
-		synchronized (mArtCache) {
-			d = mArtCache.get(index);
-		}
-		if (d == null) {
-			d = defaultArtwork;
-			final Bitmap icon = defaultArtwork.getBitmap();
-			int w = icon.getWidth();
-			int h = icon.getHeight();
-			Bitmap b = MusicUtils.getArtworkQuick(context, index, w, h);
-			if (b != null) {
-				d = new BitmapDrawable(b);
-				synchronized (mArtCache) {
-					// the cache may have changed since we checked
-					Drawable value = mArtCache.get(index);
-					if (value == null) {
-						mArtCache.put(index, d);
-					} else {
-						d = value;
-					}
-				}
-			}
-		}
-		return d;
-	}
-
-	public static Drawable getCachedArtwork(Context context, long index, int width, int height) {
-		Bitmap b = MusicUtils.getArtworkQuick(context, index, width, height);
-		return new FastBitmapDrawable(b);
-	}
-
-	public static Bitmap getCachedArtworkBitmap(Context context, long index, int width, int height) {
-
-		Bitmap art = null;
-		synchronized (mArtBitmapCache) {
-			art = mArtBitmapCache.get(index);
-		}
-		if (art == null) {
-			art = MusicUtils.getArtworkQuick(context, index, width, height);
-			if (art != null) {
-				synchronized (mArtBitmapCache) {
-					mArtBitmapCache.put(index, art);
-				}
-			}
-		}
-		return art;
-	}
-
 	public static int getCardId(Context context) {
 
 		ContentResolver res = context.getContentResolver();
@@ -760,9 +532,9 @@ public class MusicUtils implements Constants {
 	public static int getCurrentShuffleMode() {
 
 		int mode = SHUFFLE_NONE;
-		if (mService != null) {
+		if (sService != null) {
 			try {
-				mode = mService.getShuffleMode();
+				mode = sService.getShuffleMode();
 			} catch (RemoteException ex) {
 			}
 		}
@@ -822,23 +594,11 @@ public class MusicUtils implements Constants {
 		return name;
 	}
 
-	public static long[] getQueue() {
-
-		if (mService == null) return mEmptyList;
-
-		try {
-			return mService.getQueue();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
-		return mEmptyList;
-	}
-
 	public static int getQueuePosition() {
-		if (mService == null) return 0;
+		if (sService == null) return 0;
 
 		try {
-			return mService.getQueuePosition();
+			return sService.getQueuePosition();
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -848,9 +608,9 @@ public class MusicUtils implements Constants {
 	public static long getSleepTimerRemained() {
 
 		long remained = 0;
-		if (mService == null) return remained;
+		if (sService == null) return remained;
 		try {
-			remained = mService.getSleepTimerRemained();
+			remained = sService.getSleepTimerRemained();
 		} catch (Exception e) {
 			// do nothing
 		}
@@ -1001,9 +761,9 @@ public class MusicUtils implements Constants {
 	 */
 	public static boolean isMusicLoaded() {
 
-		if (MusicUtils.mService != null) {
+		if (MusicUtils.sService != null) {
 			try {
-				return mService.getTrackInfo() != null;
+				return sService.getTrackInfo() != null;
 			} catch (RemoteException ex) {
 			}
 		}
@@ -1171,10 +931,10 @@ public class MusicUtils implements Constants {
 	}
 
 	public static void moveQueueItem(int from, int to) {
-		if (mService == null) return;
+		if (sService == null) return;
 
 		try {
-			mService.moveQueueItem(from, to);
+			sService.moveQueueItem(from, to);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -1307,10 +1067,10 @@ public class MusicUtils implements Constants {
 	}
 
 	public static int removeTrack(long id) {
-		if (mService == null) return 0;
+		if (sService == null) return 0;
 
 		try {
-			return mService.removeTrack(id);
+			return sService.removeTrack(id);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -1318,10 +1078,10 @@ public class MusicUtils implements Constants {
 	}
 
 	public static int removeTracks(int first, int last) {
-		if (mService == null) return 0;
+		if (sService == null) return 0;
 
 		try {
-			return mService.removeTracks(first, last);
+			return sService.removeTracks(first, last);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -1381,18 +1141,18 @@ public class MusicUtils implements Constants {
 	}
 
 	public static void setQueueId(long id) {
-		if (mService == null) return;
+		if (sService == null) return;
 		try {
-			mService.setQueueId(id);
+			sService.setQueueId(id);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public static void setQueuePosition(int index) {
-		if (mService == null) return;
+		if (sService == null) return;
 		try {
-			mService.setQueuePosition(index);
+			sService.setQueuePosition(index);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -1426,9 +1186,9 @@ public class MusicUtils implements Constants {
 
 	public static void startSleepTimer(long milliseconds, boolean gentle) {
 
-		if (mService == null) return;
+		if (sService == null) return;
 		try {
-			mService.startSleepTimer(milliseconds, gentle);
+			sService.startSleepTimer(milliseconds, gentle);
 		} catch (Exception e) {
 			// do nothing
 		}
@@ -1436,9 +1196,9 @@ public class MusicUtils implements Constants {
 
 	public static void stopSleepTimer() {
 
-		if (mService == null) return;
+		if (sService == null) return;
 		try {
-			mService.stopSleepTimer();
+			sService.stopSleepTimer();
 		} catch (Exception e) {
 			// do nothing
 		}
@@ -1548,8 +1308,7 @@ public class MusicUtils implements Constants {
 	}
 
 	private static void playAll(Context context, long[] list, int position, boolean force_shuffle) {
-
-		if (list == null || list.length == 0 || mService == null) {
+		if (list == null || list.length == 0 || sService == null) {
 			Log.d(LOGTAG_MUSICUTILS, "attempt to play empty song list");
 			// Don't try to play empty playlists. Nothing good will come of it.
 			Toast.makeText(context, R.string.emptyplaylist, Toast.LENGTH_SHORT).show();
@@ -1557,27 +1316,27 @@ public class MusicUtils implements Constants {
 		}
 		try {
 			if (force_shuffle) {
-				mService.setShuffleMode(SHUFFLE_NORMAL);
+				sService.setShuffleMode(SHUFFLE_NORMAL);
 			}
-			long curid = mService.getTrackInfo().track_id;
-			int curpos = mService.getQueuePosition();
+			long curid = sService.getTrackInfo().id;
+			int curpos = sService.getQueuePosition();
 			if (position != -1 && curpos == position && curid == list[position]) {
 				// The selected file is the file that's currently playing;
 				// figure out if we need to restart with a new playlist,
 				// or just launch the playback activity.
-				long[] playlist = mService.getQueue();
+				long[] playlist = sService.getQueue();
 				if (Arrays.equals(list, playlist)) {
 					// we don't need to set a new list, but we should resume
 					// playback if needed
-					mService.play();
+					sService.play();
 					return; // the 'finally' block will still run
 				}
 			}
 			if (position < 0) {
 				position = 0;
 			}
-			mService.open(list, force_shuffle ? -1 : position);
-			mService.play();
+			sService.open(list, force_shuffle ? -1 : position);
+			sService.play();
 		} catch (RemoteException ex) {
 		} finally {
 			Intent intent = new Intent(INTENT_PLAYBACK_VIEWER)

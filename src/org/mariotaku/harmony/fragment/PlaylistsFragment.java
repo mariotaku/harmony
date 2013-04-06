@@ -44,7 +44,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import org.mariotaku.harmony.app.TrackBrowserActivity;
 
-public class PlaylistFragment extends ListFragment implements LoaderCallbacks<Cursor>, Constants {
+public class PlaylistsFragment extends ListFragment implements LoaderCallbacks<Cursor>, Constants {
 
 	private PlaylistsAdapter mPlaylistsAdapter;
 
@@ -56,11 +56,11 @@ public class PlaylistFragment extends ListFragment implements LoaderCallbacks<Cu
 
 	private int mIdIdx, mNameIdx;
 
-	public PlaylistFragment() {
+	public PlaylistsFragment() {
 
 	}
 
-	public PlaylistFragment(Bundle args) {
+	public PlaylistsFragment(Bundle args) {
 		setArguments(args);
 	}
 
@@ -97,12 +97,6 @@ public class PlaylistFragment extends ListFragment implements LoaderCallbacks<Cu
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.playlists_browser, container, false);
-		return view;
-	}
-
-	@Override
 	public void onListItemClick(ListView listview, View view, int position, long id) {
 
 		long playlist_id = (Long) ((Object[]) view.getTag())[1];
@@ -134,12 +128,6 @@ public class PlaylistFragment extends ListFragment implements LoaderCallbacks<Cu
 
 		setListAdapter(mAdapter);
 
-	}
-
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		outState.putAll(getArguments() != null ? getArguments() : new Bundle());
-		super.onSaveInstanceState(outState);
 	}
 
 	private void showDetails(int index, long id) {

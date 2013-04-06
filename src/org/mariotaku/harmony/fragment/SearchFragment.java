@@ -48,7 +48,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class QueryFragment extends ListFragment implements Constants, LoaderCallbacks<Cursor> {
+public class SearchFragment extends ListFragment implements Constants, LoaderCallbacks<Cursor> {
 
 	private QueryListAdapter mAdapter;
 
@@ -56,11 +56,11 @@ public class QueryFragment extends ListFragment implements Constants, LoaderCall
 	private Cursor mQueryCursor;
 	private ListView mTrackList;
 
-	public QueryFragment() {
+	public SearchFragment() {
 
 	}
 
-	public QueryFragment(Bundle arguments) {
+	public SearchFragment(Bundle arguments) {
 		setArguments(arguments);
 	}
 

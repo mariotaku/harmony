@@ -15,42 +15,47 @@ import android.widget.TextView;
 public class TracksAdapter extends SimpleDragSortCursorAdapter {
 
 	private int mIdIdx, mTrackIdx, mAlbumIdx, mArtistIdx, mDurationIdx;
-
 	private long mCurrentTrackId;
+	private final boolean mIsEditable;
 
 	public TracksAdapter(final Context context) {
+		this(context, false);
+	}
+	
+	public TracksAdapter(final Context context, final boolean editable) {
 		super(context, R.layout.track_list_item, null, new String[0], new int[0], 0);
+		mIsEditable = editable;
 	}
 
 	@Override
 	public void bindView(View view, Context context, Cursor cursor) {
-		final ViewHolder viewholder = (ViewHolder) view.getTag();
-
+		final ViewHolder holder = (ViewHolder) view.getTag();
+		holder.drag_handle.setVisibility(mIsEditable ? View.VISIBLE : View.GONE);
 		final String track = cursor.getString(mTrackIdx);
-		viewholder.track.setText(track);
+		holder.track.setText(track);
 
 		final String artist = cursor.getString(mArtistIdx);
 		if (artist == null || MediaStore.UNKNOWN_STRING.equals(artist)) {
-			viewholder.artist.setText(R.string.unknown_artist);
+			holder.artist.setText(R.string.unknown_artist);
 		} else {
-			viewholder.artist.setText(artist);
+			holder.artist.setText(artist);
 		}
 
-		long secs = cursor.getLong(mDurationIdx) / 1000;
+		final long secs = cursor.getLong(mDurationIdx) / 1000;
 
 		if (secs <= 0) {
-			viewholder.duration.setText(null);
+			holder.duration.setText(null);
 		} else {
-			viewholder.duration.setText(MusicUtils.makeTimeString(context, secs));
+			holder.duration.setText(MusicUtils.makeTimeString(context, secs));
 		}
 
 		final long audio_id = cursor.getLong(mIdIdx);
 
 		if (mCurrentTrackId == audio_id) {
-			viewholder.track.setCompoundDrawablesWithIntrinsicBounds(0, 0,
+			holder.track.setCompoundDrawablesWithIntrinsicBounds(0, 0,
 																	 R.drawable.ic_indicator_nowplaying_small, 0);
 		} else {
-			viewholder.track.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+			holder.track.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
 		}
 
 	}
@@ -81,9 +86,11 @@ public class TracksAdapter extends SimpleDragSortCursorAdapter {
 
 	private static class ViewHolder {
 
+		final View drag_handle;
 		final TextView track, artist, duration;
 
 		ViewHolder(View view) {
+			drag_handle = view.findViewById(R.id.drag_handle);
 			track = (TextView) view.findViewById(R.id.name);
 			artist = (TextView) view.findViewById(R.id.summary);
 			duration = (TextView) view.findViewById(R.id.duration);

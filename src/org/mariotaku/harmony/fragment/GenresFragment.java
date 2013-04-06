@@ -72,12 +72,6 @@ public class GenresFragment extends BaseListFragment implements LoaderCallbacks<
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.playlists_browser, container, false);
-		return view;
-	}
-
-	@Override
 	public void onListItemClick(ListView listview, View view, int position, long id) {
 		showDetails(position, id);
 	}
@@ -93,12 +87,6 @@ public class GenresFragment extends BaseListFragment implements LoaderCallbacks<
 		mNameIdx = data.getColumnIndexOrThrow(Audio.Genres.NAME);
 		mAdapter.changeCursor(data);
 		setListAdapter(mAdapter);
-	}
-
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		outState.putAll(getArguments() != null ? getArguments() : new Bundle());
-		super.onSaveInstanceState(outState);
 	}
 
 	private void showDetails(int index, long id) {

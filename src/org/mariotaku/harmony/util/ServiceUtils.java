@@ -17,7 +17,6 @@ public class ServiceUtils implements Constants {
 
 	private static final String LOGTAG = "ServiceUtils";
 
-	private static IMusicPlaybackService sService;
 	private static HashMap<Context, ServiceBinder> sConnectionMap = new HashMap<Context, ServiceBinder>();
 
 	public static ServiceToken bindToService(Activity context) {
@@ -54,7 +53,7 @@ public class ServiceUtils implements Constants {
 			// presumably there is nobody interested in the service at this
 			// point,
 			// so don't hang on to the ServiceConnection
-			sService = null;
+			MusicUtils.sService = null;
 		}
 	}
 
@@ -79,7 +78,9 @@ public class ServiceUtils implements Constants {
 
 		@Override
 		public void onServiceConnected(ComponentName className, IBinder service) {
-			sService = IMusicPlaybackService.Stub.asInterface(service);
+			if (MusicUtils.sService == null) {
+				MusicUtils.sService = IMusicPlaybackService.Stub.asInterface(service);
+			}
 			if (mCallback != null) {
 				mCallback.onServiceConnected(className, service);
 			}
@@ -90,7 +91,6 @@ public class ServiceUtils implements Constants {
 			if (mCallback != null) {
 				mCallback.onServiceDisconnected(className);
 			}
-			sService = null;
 		}
 	}
 

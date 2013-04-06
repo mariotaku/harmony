@@ -1,30 +1,36 @@
 package org.mariotaku.harmony.fragment;
 
-import com.mobeta.android.dslv.DragSortListView;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import com.mobeta.android.dslv.DragSortListView;
+import org.mariotaku.harmony.R;
 
-public class EditableTracksFragment extends AbsTracksFragment implements DragSortListView.DragSortListener {
+public abstract class EditableTracksFragment extends AbsTracksFragment implements DragSortListView.DragSortListener {
 
-	public void onDrag(int from, int to) {
-		// TODO: Implement this method
+	@Override
+	public DragSortListView getListView() {
+		return (DragSortListView) super.getListView();
 	}
 
-	public void onDrop(int from, int to) {
-		// TODO: Implement this method
-	}
-
-	public void onRemove(int which) {
-		// TODO: Implement this method
-	}
-
-	protected String getWhereClause(Bundle args) {
-		// TODO: Implement this method
-		return null;
-	}
-
-	protected String[] getWhereArgs(Bundle args) {
-		// TODO: Implement this method
-		return null;
+	@Override
+	public View onCreateView(final LayoutInflater inflater, final ViewGroup parent, final Bundle savedInstanceState) {
+		return inflater.inflate(R.layout.tracks_browser, null);
 	}
 	
+	@Override
+	public void onDrag(int from, int to) {
+		mAdapter.notifyDataSetChanged();
+	}
+
+	@Override
+	public void onDrop(int from, int to) {
+		mAdapter.notifyDataSetChanged();
+	}
+
+	@Override
+	public void onRemove(int which) {
+		mAdapter.notifyDataSetChanged();
+	}
 }

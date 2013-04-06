@@ -15,19 +15,24 @@
      limitations under the License.
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:dslv="http://schemas.android.com/apk/res/org.mariotaku.harmony"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent"
-	android:gravity="center_vertical"
-	android:orientation="vertical">
+	android:layout_height="match_parent">
 
-	<ListView
+	<com.mobeta.android.dslv.DragSortListView
 		android:id="@android:id/list"
 		android:layout_width="match_parent"
-		android:layout_height="0dip"
-		android:layout_weight="1"
-		android:drawSelectorOnTop="false"
-		android:fastScrollEnabled="true"
-		android:textSize="18sp"/>
+		android:layout_height="match_parent"
+		dslv:dragEnabled="true"
+		dslv:dragHandleId="@+id/drag_handle"
+		dslv:collapsedHeight="2dp"
+		dslv:dragScrollStart="0.33"
+		dslv:maxDragScrollSpeed="0.5"
+		dslv:floatAlpha="0.6"
+		dslv:slideShuffleSpeed="0.3"
+		dslv:sortEnabled="true"
+		dslv:trackDragSort="true"
+		dslv:useDefaultController="true"/>
 
-</LinearLayout>
+</FrameLayout>

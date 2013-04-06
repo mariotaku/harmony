@@ -24,13 +24,13 @@ public class TrackInfo implements Parcelable {
 	};
 	
 	public final String title, album, artist, data;
-	public final long track_id, album_id, artist_id;
+	public final long id, album_id, artist_id;
 
 	public TrackInfo(final Cursor cursor) {
 		title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
 		album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
 		artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-		track_id = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
+		id = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
 		album_id = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID));
 		artist_id = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST_ID));
 		data = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
@@ -40,7 +40,7 @@ public class TrackInfo implements Parcelable {
 		title = in.readString();
 		album = in.readString();
 		artist = in.readString();
-		track_id = in.readLong();
+		id = in.readLong();
 		album_id = in.readLong();
 		artist_id = in.readLong();
 		data = in.readString();
@@ -53,14 +53,14 @@ public class TrackInfo implements Parcelable {
 	@Override
 	public String toString() {
 		return "TrackInfo{album=" + album + ",album_id=" + album_id + ",artist=" + artist + ",artist_id,"
-				+ artist_id + "data=" + data + ",title=" + title + ",track_id=" + track_id + "}";
+				+ artist_id + "data=" + data + ",title=" + title + ",track_id=" + id + "}";
 	}
 
 	public void writeToParcel(final Parcel out, final int flags) {
 		out.writeString(title);
 		out.writeString(album);
 		out.writeString(artist);
-		out.writeLong(track_id);
+		out.writeLong(id);
 		out.writeLong(album_id);
 		out.writeLong(artist_id);
 		out.writeString(data);

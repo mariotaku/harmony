@@ -26,20 +26,20 @@ import org.mariotaku.harmony.model.TrackInfo;
 
 interface IMusicPlaybackService {
 	
-	void openFile(String path);
-	void open(in long [] list, int position);
-	int getQueuePosition();
-	boolean isPlaying();
-	void stop();
-	void pause();
 	void play();
+	void pause();
 	void prev();
 	void next();
+	void stop();
+	long seek(long pos);
+	void open(in long [] list, int position);
+	boolean togglePause();
+	int getQueuePosition();
+	boolean isPlaying();
 	void cycleRepeat();
 	void toggleShuffle();
 	long getDuration();
 	long getPosition();
-	long seek(long pos);
 	void enqueue(in long [] list, int action);
 	void moveQueueItem(int from, int to);
 	long [] getQueue();
@@ -56,10 +56,5 @@ interface IMusicPlaybackService {
 	void startSleepTimer(long millisecond, boolean gentle);
 	void stopSleepTimer();
 	long getSleepTimerRemained();
-	void toggleFavorite();
-	void addToFavorites(long id);
-	void removeFromFavorites(long id);
-	boolean isFavorite(long id);
-	boolean togglePause();
 
 }

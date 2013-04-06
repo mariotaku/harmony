@@ -6,21 +6,20 @@ import org.mariotaku.harmony.IMusicPlaybackService;
 import org.mariotaku.harmony.model.TrackInfo;
 
 public class ServiceWrapper implements IMusicPlaybackService {
-	
-	public void openFile(String path) {
-		// TODO: Implement this method
-		try {
-			mService.openFile(path);
-		} catch (RemoteException e) {}
-	}
 
 	public void open(long[] list, int position) {
 		// TODO: Implement this method
+		try {
+			mService.open(list, position);
+		} catch (RemoteException e) {}
 	}
 
 	public int getQueuePosition() {
 		// TODO: Implement this method
-		return 0;
+		try {
+			return mService.getQueuePosition();
+		} catch (RemoteException e) {}
+		return -1;
 	}
 
 	public boolean isPlaying() {
@@ -95,6 +94,9 @@ public class ServiceWrapper implements IMusicPlaybackService {
 
 	public void enqueue(long[] list, int action) {
 		// TODO: Implement this method
+		try {
+			mService.enqueue(list, action);
+		} catch (RemoteException e) {}
 	}
 
 	public void moveQueueItem(int from, int to) {
@@ -102,7 +104,9 @@ public class ServiceWrapper implements IMusicPlaybackService {
 	}
 
 	public long[] getQueue() {
-		// TODO: Implement this method
+		try {
+			return mService.getQueue();
+		} catch (RemoteException e) {}
 		return null;
 	}
 
@@ -155,31 +159,15 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		return 0;
 	}
 
-	public void toggleFavorite() {
-		// TODO: Implement this method
-	}
-
-	public void addToFavorites(long id) {
-		// TODO: Implement this method
-	}
-
-	public void removeFromFavorites(long id) {
-		// TODO: Implement this method
-	}
-
-	public boolean isFavorite(long id) {
-		// TODO: Implement this method
-		return false;
-	}
-
 	public boolean togglePause() {
-		// TODO: Implement this method
+		try {
+			return mService.togglePause();
+		} catch (RemoteException e) {}
 		return false;
 	}
 
 	public IBinder asBinder() {
-		// TODO: Implement this method
-		return null;
+		return mService.asBinder();
 	}
 
 
