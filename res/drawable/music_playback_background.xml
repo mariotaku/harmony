@@ -21,7 +21,7 @@
 		android:centerX="0.5"
 		android:centerY="0.5"
 		android:endColor="#af000000"
-		android:gradientRadius="300"
+		android:gradientRadius="50%"
 		android:startColor="#33000000"
 		android:type="radial"/>
 

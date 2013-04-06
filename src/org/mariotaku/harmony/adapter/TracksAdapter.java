@@ -1,5 +1,6 @@
 package org.mariotaku.harmony.adapter;
 
+import com.mobeta.android.dslv.SimpleDragSortCursorAdapter;
 import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.util.MusicUtils;
 
@@ -9,10 +10,9 @@ import android.provider.MediaStore;
 import android.provider.MediaStore.Audio;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
-public class TracksAdapter extends SimpleCursorAdapter {
+public class TracksAdapter extends SimpleDragSortCursorAdapter {
 
 	private int mIdIdx, mTrackIdx, mAlbumIdx, mArtistIdx, mDurationIdx;
 

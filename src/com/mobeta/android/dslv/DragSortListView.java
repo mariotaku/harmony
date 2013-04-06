@@ -158,20 +158,20 @@ public class DragSortListView extends ListView {
      * A listener that receives callbacks whenever the floating View
      * hovers over a new position.
      */
-    private DragListener mDragListener;
+    private OnDragListener mDragListener;
 
     /**
      * A listener that receives a callback when the floating View
      * is dropped.
      */
-    private DropListener mDropListener;
+    private OnDropListener mDropListener;
 
     /**
      * A listener that receives a callback when the floating View
      * (or more precisely the originally dragged item) is removed
      * by one of the provided gestures.
      */
-    private RemoveListener mRemoveListener;
+    private OnRemoveListener mRemoveListener;
 
     /**
      * Enable/Disable item dragging
@@ -609,14 +609,14 @@ public class DragSortListView extends ListView {
             mAdapterWrapper = new AdapterWrapper(adapter);
             adapter.registerDataSetObserver(mObserver);
 
-            if (adapter instanceof DropListener) {
-                setDropListener((DropListener) adapter);
+            if (adapter instanceof OnDropListener) {
+                setOnDropListener((OnDropListener) adapter);
             }
-            if (adapter instanceof DragListener) {
-                setDragListener((DragListener) adapter);
+            if (adapter instanceof OnDragListener) {
+                setOnDragListener((OnDragListener) adapter);
             }
-            if (adapter instanceof RemoveListener) {
-                setRemoveListener((RemoveListener) adapter);
+            if (adapter instanceof OnRemoveListener) {
+                setOnRemoveListener((OnRemoveListener) adapter);
             }
         } else {
             mAdapterWrapper = null;
@@ -1111,7 +1111,7 @@ public class DragSortListView extends ListView {
 
         if (itemPos != mFloatPos) {
             if (mDragListener != null) {
-                mDragListener.drag(mFloatPos - numHeaders, itemPos - numHeaders);
+                mDragListener.onDrag(mFloatPos - numHeaders, itemPos - numHeaders);
             }
 
             mFloatPos = itemPos;
@@ -1462,7 +1462,7 @@ public class DragSortListView extends ListView {
         if (mDropListener != null) {
             final int count = getInputAdapter().getCount();
             if (from >= 0 && from < count && to >= 0 && to < count) {
-                mDropListener.drop(from, to);
+                mDropListener.onDrop(from, to);
             }
         }
     }
@@ -1500,7 +1500,7 @@ public class DragSortListView extends ListView {
 
         if (mDropListener != null && mFloatPos >= 0 && mFloatPos < getCount()) {
             final int numHeaders = getHeaderViewsCount();
-            mDropListener.drop(mSrcPos - numHeaders, mFloatPos - numHeaders);
+            mDropListener.onDrop(mSrcPos - numHeaders, mFloatPos - numHeaders);
         }
 
         destroyFloatView();
@@ -1531,7 +1531,7 @@ public class DragSortListView extends ListView {
 
         // end it
         if (mRemoveListener != null) {
-            mRemoveListener.remove(which);
+            mRemoveListener.onRemove(which);
         }
 
         destroyFloatView();
@@ -2474,7 +2474,7 @@ public class DragSortListView extends ListView {
         mFloatViewManager = manager;
     }
 
-    public void setDragListener(DragListener l) {
+    public void setOnDragListener(OnDragListener l) {
         mDragListener = l;
     }
 
@@ -2508,7 +2508,7 @@ public class DragSortListView extends ListView {
      * 
      * @param l
      */
-    public void setDropListener(DropListener l) {
+    public void setOnDropListener(OnDropListener l) {
         mDropListener = l;
     }
 
@@ -2522,12 +2522,12 @@ public class DragSortListView extends ListView {
      * 
      * @param l
      */
-    public void setRemoveListener(RemoveListener l) {
+    public void setOnRemoveListener(OnRemoveListener l) {
         mRemoveListener = l;
     }
 
-    public interface DragListener {
-        public void drag(int from, int to);
+    public static interface OnDragListener {
+        public void onDrag(int from, int to);
     }
 
     /**
@@ -2539,8 +2539,8 @@ public class DragSortListView extends ListView {
      * @author heycosmo
      *
      */
-    public interface DropListener {
-        public void drop(int from, int to);
+    public static interface OnDropListener {
+        public void onDrop(int from, int to);
     }
 
     /**
@@ -2551,17 +2551,17 @@ public class DragSortListView extends ListView {
      * @author heycosmo
      *
      */
-    public interface RemoveListener {
-        public void remove(int which);
+    public static interface OnRemoveListener {
+        public void onRemove(int which);
     }
 
-    public interface DragSortListener extends DropListener, DragListener, RemoveListener {
+    public static interface DragSortListener extends OnDropListener, OnDragListener, OnRemoveListener {
     }
 
     public void setDragSortListener(DragSortListener l) {
-        setDropListener(l);
-        setDragListener(l);
-        setRemoveListener(l);
+        setOnDropListener(l);
+        setOnDragListener(l);
+        setOnRemoveListener(l);
     }
 
     /**

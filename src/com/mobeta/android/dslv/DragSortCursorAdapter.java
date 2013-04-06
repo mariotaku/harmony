@@ -112,7 +112,7 @@ public abstract class DragSortCursorAdapter extends CursorAdapter implements Dra
      * @see DragSortListView.DropListener#drop(int, int)
      */
     @Override
-    public void drop(int from, int to) {
+    public void onDrop(int from, int to) {
         if (from != to) {
             int cursorFrom = mListMapping.get(from, from);
 
@@ -140,7 +140,7 @@ public abstract class DragSortCursorAdapter extends CursorAdapter implements Dra
      * @see DragSortListView.RemoveListener#remove(int)
      */
     @Override
-    public void remove(int which) {
+    public void onRemove(int which) {
         int cursorPos = mListMapping.get(which, which);
         if (!mRemovedCursorPositions.contains(cursorPos)) {
             mRemovedCursorPositions.add(cursorPos);
@@ -161,7 +161,7 @@ public abstract class DragSortCursorAdapter extends CursorAdapter implements Dra
      * Does nothing. Just completes DragSortListener interface.
      */
     @Override
-    public void drag(int from, int to) {
+    public void onDrag(int from, int to) {
         // do nothing
     }
 
