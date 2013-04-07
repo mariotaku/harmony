@@ -38,6 +38,7 @@ import android.widget.ListView;
 import com.mobeta.android.dslv.DragSortListView;
 import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.adapter.TracksAdapter;
+import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.MusicUtils;
 import org.mariotaku.harmony.util.PreferencesEditor;
 import org.mariotaku.harmony.util.ServiceWrapper;
@@ -185,15 +186,26 @@ public abstract class AbsTracksFragment2 extends BaseListFragment implements Loa
 		mListView = (DragSortListView) v.findViewById(android.R.id.list);
 		return v;
 	}
-	
+
 	@Override
 	protected void onServiceConnected(final ServiceWrapper service) {
 		mService = service;
+		updateNowPlaying();
 	}
 
 	@Override
 	protected void onServiceDisconnected() {
 		mService = null;
+	}
+
+	@Override
+	protected void onCurrentMediaChanged() {
+		updateNowPlaying();
+	}
+
+	private void updateNowPlaying() {
+		final TrackInfo track = mService != null ? mService.getTrackInfo() : null;
+		mAdapter.setCurrentTrackId(track != null ? track.id : -1);
 	}
 
 }

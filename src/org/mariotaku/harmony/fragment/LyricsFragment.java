@@ -20,50 +20,108 @@
 
 package org.mariotaku.harmony.fragment;
 
-import org.mariotaku.harmony.Constants;
-import org.mariotaku.harmony.IMusicPlaybackService;
-import org.mariotaku.harmony.R;
-import org.mariotaku.harmony.util.MusicUtils;
-import org.mariotaku.harmony.widget.TextScrollView;
-import org.mariotaku.harmony.widget.TextScrollView.OnLineSelectedListener;
-
+import android.app.LoaderManager;
 import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.Loader;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.os.RemoteException;
-import android.provider.Settings;
-import android.provider.Settings.SettingNotFoundException;
-import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
+import android.view.ScaleGestureDetector.OnScaleGestureListener;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
-import android.widget.TextView;
-
-import android.app.Fragment;
-import org.mariotaku.harmony.model.TrackInfo;
-import org.mariotaku.harmony.util.ServiceWrapper;
-import org.mariotaku.harmony.fragment.BaseFragment;
-import android.app.LoaderManager;
-import android.content.Loader;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.ListView;
+import org.mariotaku.harmony.Constants;
+import org.mariotaku.harmony.adapter.LyricsAdapter;
 import org.mariotaku.harmony.loader.LyricsLoader;
-import android.widget.Toast;
 import org.mariotaku.harmony.model.Lyrics;
+import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.LyricsTimer;
+import org.mariotaku.harmony.util.ServiceWrapper;
+import org.mariotaku.harmony.view.ExtendedFrameLayout;
+import org.mariotaku.harmony.view.iface.IExtendedView.OnSizeChangedListener;
+import org.mariotaku.harmony.view.iface.IExtendedViewGroup.TouchInterceptor;
+import android.widget.Toast;
 
-public class LyricsFragment extends BaseFragment implements Constants, OnLineSelectedListener, OnLongClickListener,
-	LoaderManager.LoaderCallbacks<Lyrics>, LyricsTimer.Callbacks {
+public class LyricsFragment extends BaseListFragment implements Constants, OnLongClickListener, LoaderManager.LoaderCallbacks<Lyrics>,
+LyricsTimer.Callbacks, OnSizeChangedListener, TouchInterceptor, OnItemLongClickListener,
+OnScaleGestureListener {
+
+	private static float limit(final float value, final float value1, final float value2) {
+		final float min = Math.min(value1, value2), max = Math.max(value1, value2);
+		return Math.max(Math.min(value, max), min);
+	}
+ 
+	private ScaleGestureDetector mScaleGestureDetector;
+
+	public boolean onScale(ScaleGestureDetector detctor) {
+		final float size = mAdapter.getTextSize() * detctor.getScaleFactor();
+		mAdapter.setTextSize(limit(size, 10, 24));
+		return true;
+	}
+
+	public boolean onScaleBegin(ScaleGestureDetector detector) {
+		mAdapter.setAutoWrapEnabled(false);
+		return true;
+	}
+
+	public void onScaleEnd(ScaleGestureDetector detector) {
+		mAdapter.setAutoWrapEnabled(true);
+	}
+	
+
+	public void dispatchTouchEvent(ViewGroup view, MotionEvent event) {
+	}
+
+	public boolean onInterceptTouchEvent(ViewGroup view, MotionEvent event) {
+		return event.getPointerCount() > 1;
+	}
+
+	public boolean onTouchEvent(ViewGroup view, MotionEvent event) {
+		return mScaleGestureDetector.onTouchEvent(event);
+	}	
+
+	public boolean onItemLongClick(AdapterView<?> view, View child, int position, long id) {
+		return true;
+	}
+	
+
+	private View mHeaderView;
+	private int mViewHeight;
+
+	public void onSizeChanged(View view, int w, int h, int oldw, int oldh) {
+		// TODO: Implement this method
+		mHeaderView.setMinimumWidth(w);
+		mHeaderView.setMinimumHeight(h / 2);
+		mViewHeight = h;
+		mAdapter.setMaxWidth(w / 3 * 2);
+	}
+	
 
 	private LyricsTimer mLyricsTimer;
+	private LyricsAdapter mAdapter;
+	private ServiceWrapper mService = null;
+	
+	private Lyrics mLyrics;
+
+	private ListView mListView;
+	private ExtendedFrameLayout mContainerView;	
+	
+	private boolean mLoaderInitialized;
 
 	public void onLyricsChanged(Lyrics.Line current) {
 		if (current == null) return;
-		mLyricsScrollView.setCurrentLine(current.getIndex(), false);
+		final int position = current.getIndex();
+		final View item_view = mAdapter.getView(position, null, null);
+		item_view.measure(0, 0);
+		final int h = item_view.getMeasuredHeight();
+		mListView.smoothScrollToPositionFromTop(position + mListView.getHeaderViewsCount(), mViewHeight / 2 - h / 2);
+		mListView.setOnItemLongClickListener(this);
+		mAdapter.setCurrentPosition(position);
 	}
 
 	public boolean isPlaying() {
@@ -79,27 +137,25 @@ public class LyricsFragment extends BaseFragment implements Constants, OnLineSel
 	private static final String EXTRA_LYRICS_PATH = "lyrics_path";
 			
 	public Loader<Lyrics> onCreateLoader(int id, Bundle args) {
+		setListShown(false);
 		return new LyricsLoader(getActivity(), args.getString(EXTRA_LYRICS_PATH));
 	}
 
 	public void onLoadFinished(Loader<Lyrics> loader, Lyrics data) {
 		mLyrics = data;
-		mLyricsScrollView.setTextContent(data != null ? data.getAll() : null);
+		//mLyricsScrollView.setTextContent(data != null ? data.getAll() : null);
+		mAdapter.loadLyrics(data);
 		mLyricsTimer.loadLyrics(data);
+		setListShown(true);		
 	}
 
 	public void onLoaderReset(Loader<Lyrics> id) {
 		// TODO: Implement this method
 	}
-	
-	private boolean mLoaderInitialized;
-
-	private ServiceWrapper mService = null;
-	private Lyrics mLyrics;
 
 	// for lyrics displaying
-	private TextScrollView mLyricsScrollView;
-	private TextView mLyricsInfoMessage;
+	//private TextScrollView mLyricsScrollView;
+	//private TextView mLyricsInfoMessage;
 
 	protected void onSeekChanged() {
 		mLyricsTimer.resume();
@@ -108,38 +164,42 @@ public class LyricsFragment extends BaseFragment implements Constants, OnLineSel
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		mLyricsScrollView.setContentGravity(Gravity.CENTER_HORIZONTAL);
-		mLyricsInfoMessage.setOnLongClickListener(this);
+		//mLyricsScrollView.setContentGravity(Gravity.CENTER_HORIZONTAL);
+		//mLyricsInfoMessage.setOnLongClickListener(this);
+		mHeaderView = new View(getActivity());
+		mScaleGestureDetector = new ScaleGestureDetector(getActivity(), this);
+		mListView = getListView();
+		mListView.addHeaderView(mHeaderView, null, false);
+		mListView.addFooterView(mHeaderView, null, false);
+		mListView.setDivider(null);
+		mContainerView.setOnSizeChangedListener(this);
+		mContainerView.setTouchInterceptor(this);
+		mAdapter = new LyricsAdapter(getActivity());
+		setListAdapter(mAdapter);
+		setListShown(false);
 		mLyricsTimer = new LyricsTimer(this);
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		final View view = inflater.inflate(R.layout.lyrics_view, container, false);
-		mLyricsScrollView = (TextScrollView) view.findViewById(R.id.lyrics_scroll);
-		mLyricsInfoMessage = (TextView) view.findViewById(R.id.message);
-		return view;
+		final View view = super.onCreateView(inflater, container, savedInstanceState);
+		mContainerView = new ExtendedFrameLayout(getActivity());
+		mContainerView.addView(view);
+		return mContainerView;
 	}
-
+	
 	@Override
-	public void onLineSelected(int id) {
+	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
 		if (mLyrics == null) return;
-		mService.seek(mLyrics.get(id).getActualTime());
+		mService.seek(mLyrics.get(position - l.getHeaderViewsCount()).getActualTime());
 	}
 
 	@Override
-	public boolean onLongClick(View v) {
+	public boolean onLongClick(final View v) {
 		searchLyrics();
 		return true;
 	}
 
-	@Override
-	public void onStart() {
-		super.onStart();
-		mLyricsScrollView.setLineSelectedListener(this);
-		mLyricsScrollView.setSmoothScrollingEnabled(true);
-	}
-	
 	@Override
 	protected void onServiceConnected(final ServiceWrapper service) {
 		mService = service;

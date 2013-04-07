@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge xmlns:android="http://schemas.android.com/apk/res/android">
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:vp3d="http://schemas.android.com/apk/res-auto">
 
 	<ImageView
 		android:id="@+id/album_art"
@@ -7,7 +8,7 @@
 		android:layout_height="match_parent"
 		android:scaleType="centerCrop"/>
 
-	<android.support.v4.view.ViewPager
+	<de.inovex.android.widgets.ViewPager3D
 		android:id="@+id/pager"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"/>

@@ -65,9 +65,32 @@ import org.mariotaku.harmony.fragment.LyricsFragment;
 import android.content.Context;
 import android.app.Activity;
 import org.mariotaku.harmony.fragment.QueueFragment;
+import org.mariotaku.harmony.view.ExtendedRelativeLayout;
+import android.view.ViewGroup;
+import android.view.MotionEvent;
 
 public class MusicPlaybackActivity extends BaseActivity implements Constants, View.OnClickListener, SeekBar.OnSeekBarChangeListener,
- 		ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener {
+		ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRelativeLayout.TouchInterceptor {
+
+	public void dispatchTouchEvent(ViewGroup view, MotionEvent event) {
+	}
+
+	public boolean onInterceptTouchEvent(ViewGroup view, MotionEvent event) {
+		if (true) return false;
+		if (event.getAction() == MotionEvent.ACTION_DOWN) {
+			if (mActionBar.isShowing()) {
+				mActionBar.hide();
+			} else {
+				mActionBar.show();
+			}
+		}
+		return false;
+	}
+
+	public boolean onTouchEvent(ViewGroup view, MotionEvent event) {
+		return false;
+	}
+	
 
 	public void onClick(final View view) {
 		switch (view.getId()) {
@@ -127,6 +150,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	private ViewPager mViewPager;
 	private RepeatingImageButton mPrevButton, mNextButton;
 	private ImageButton mPlayPauseButton;
+	private ExtendedRelativeLayout mPlaybackContainer;
 	
 	private PagerAdapter mAdapter;
 
@@ -237,6 +261,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		mNextButton.setRepeatListener(this, 260);
 
 		mDeviceHasDpad = getResources().getConfiguration().navigation == Configuration.NAVIGATION_DPAD;
+		mPlaybackContainer.setTouchInterceptor(this);
 
 		mAdapter = new PagerAdapter(this);
 		mViewPager.setAdapter(mAdapter);
@@ -244,6 +269,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		mAdapter.addFragment(Fragment.class);
 		mAdapter.addFragment(LyricsFragment.class);
 		mViewPager.setOnPageChangeListener(this);
+		mViewPager.setOffscreenPageLimit(3);
 		mViewPager.setCurrentItem(1, false);
 	}
 
@@ -506,6 +532,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	
 	public void onContentChanged() {
 		super.onContentChanged();
+		mPlaybackContainer = (ExtendedRelativeLayout) findViewById(R.id.music_playback);
 		mAlbumArt = (ImageView) findViewById(R.id.album_art);
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mTrackName = (TextView) findViewById(R.id.track_name);

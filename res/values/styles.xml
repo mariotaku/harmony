@@ -6,5 +6,11 @@
 		<item name="android:activityCloseEnterAnimation">@anim/hold_long</item>-->
 		<item name="android:activityCloseExitAnimation">@anim/music_playback_activity_exit</item>
 	</style>
+	
+	<style name="Widget.ActionBar" parent="android:Widget.Holo.ActionBar"></style>
+		
+	<style name="Widget.ActionBar.MusicPlayback">
+		<item name="android:background">#80000000</item>
+	</style>
 
 </resources>

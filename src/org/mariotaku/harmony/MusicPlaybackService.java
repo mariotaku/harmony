@@ -530,40 +530,37 @@ public class MusicPlaybackService extends Service implements Constants {
 	 * @param from
 	 * @param to
 	 */
-	public void moveQueueItem(int from, int to) {
-
-		synchronized (this) {
-			if (from >= mPlayListLen) {
-				from = mPlayListLen - 1;
-			}
-			if (to >= mPlayListLen) {
-				to = mPlayListLen - 1;
-			}
-			if (from < to) {
-				long tmp = mPlayList[from];
-				for (int i = from; i < to; i++) {
-					mPlayList[i] = mPlayList[i + 1];
-				}
-				mPlayList[to] = tmp;
-				if (mPlayPos == from) {
-					mPlayPos = to;
-				} else if (mPlayPos >= from && mPlayPos <= to) {
-					mPlayPos--;
-				}
-			} else if (to < from) {
-				long tmp = mPlayList[from];
-				for (int i = from; i > to; i--) {
-					mPlayList[i] = mPlayList[i - 1];
-				}
-				mPlayList[to] = tmp;
-				if (mPlayPos == from) {
-					mPlayPos = to;
-				} else if (mPlayPos >= to && mPlayPos <= from) {
-					mPlayPos++;
-				}
-			}
-			notifyChange(BROADCAST_QUEUE_CHANGED);
+	public synchronized void moveQueueItem(int from, int to) {
+		if (from >= mPlayListLen) {
+			from = mPlayListLen - 1;
 		}
+		if (to >= mPlayListLen) {
+			to = mPlayListLen - 1;
+		}
+		if (from < to) {
+			final long tmp = mPlayList[from];
+			for (int i = from; i < to; i++) {
+				mPlayList[i] = mPlayList[i + 1];
+			}
+			mPlayList[to] = tmp;
+			if (mPlayPos == from) {
+				mPlayPos = to;
+			} else if (mPlayPos >= from && mPlayPos <= to) {
+				mPlayPos--;
+			}
+		} else if (to < from) {
+			long tmp = mPlayList[from];
+			for (int i = from; i > to; i--) {
+				mPlayList[i] = mPlayList[i - 1];
+			}
+			mPlayList[to] = tmp;
+			if (mPlayPos == from) {
+				mPlayPos = to;
+			} else if (mPlayPos >= to && mPlayPos <= from) {
+				mPlayPos++;
+			}
+		}
+		notifyChange(BROADCAST_QUEUE_CHANGED);
 	}
 
 	public void next(boolean force) {

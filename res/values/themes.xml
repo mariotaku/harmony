@@ -12,6 +12,7 @@
 		<item name="android:windowBackground">@drawable/music_playback_background</item>
 		<item name="android:windowAnimationStyle">@style/Animation.MusicPlayback</item>
 		<item name="android:windowActionBarOverlay">true</item>
+		<item name="android:actionBarStyle">@style/Widget.ActionBar.MusicPlayback</item>
 	</style>
 
 </resources>

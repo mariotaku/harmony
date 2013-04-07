@@ -1,23 +1,26 @@
 package org.mariotaku.harmony.fragment;
 
 import android.app.LoaderManager;
+import android.content.ContentResolver;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore.Audio;
-import org.mariotaku.harmony.adapter.TracksAdapter;
-import android.content.ContentResolver;
 import com.mobeta.android.dslv.DragSortListView;
+import org.mariotaku.harmony.adapter.TracksAdapter;
+import org.mariotaku.harmony.model.TrackInfo;
+import org.mariotaku.harmony.util.ServiceWrapper;
 
 public abstract class AbsTracksFragment extends BaseListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-	private static final String[] AUDIO_COLUMNS = new String[] { Audio.AudioColumns._ID, Audio.AudioColumns.TITLE, Audio.AudioColumns.DATA,
+	protected static final String[] AUDIO_COLUMNS = new String[] { Audio.AudioColumns._ID, Audio.AudioColumns.TITLE, Audio.AudioColumns.DATA,
 		Audio.AudioColumns.ALBUM, Audio.AudioColumns.ARTIST, Audio.AudioColumns.ARTIST_ID, Audio.AudioColumns.DURATION };
 
 	private ContentResolver mResolver;
-	protected TracksAdapter mAdapter;
+	private TracksAdapter mAdapter;
 	private boolean mLoaderInitialized;
+	private ServiceWrapper mService;
 
 	@Override
 	public final TracksAdapter getListAdapter() {
@@ -34,7 +37,7 @@ public abstract class AbsTracksFragment extends BaseListFragment implements Load
 	}
 
 	@Override
-	public final Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
+	public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
 		return new CursorLoader(getActivity(), Audio.Media.EXTERNAL_CONTENT_URI, AUDIO_COLUMNS, getWhereClause(args), getWhereArgs(args), getSortOrder(args));
 	}
 
@@ -46,9 +49,13 @@ public abstract class AbsTracksFragment extends BaseListFragment implements Load
 		mAdapter.changeCursor(null);
 	}
 	
-	protected abstract String getWhereClause(final Bundle args);
+	protected String getWhereClause(final Bundle args) {
+		return null;
+	}
 	
-	protected abstract String[] getWhereArgs(final Bundle args);
+	protected String[] getWhereArgs(final Bundle args) {
+		return null;
+	}
 	
 	protected String getSortOrder(final Bundle args) {
 		return null;
@@ -63,5 +70,26 @@ public abstract class AbsTracksFragment extends BaseListFragment implements Load
 			lm.initLoader(0, args, this);
 			mLoaderInitialized = true;
 		}
+	}
+
+	@Override
+	protected void onServiceConnected(final ServiceWrapper service) {
+		mService = service;
+		updateNowPlaying();
+	}
+
+	@Override
+	protected void onServiceDisconnected() {
+		mService = null;
+	}
+	
+	@Override
+	protected void onCurrentMediaChanged() {
+		updateNowPlaying();
+	}
+
+	private void updateNowPlaying() {
+		final TrackInfo track = mService != null ? mService.getTrackInfo() : null;
+		mAdapter.setCurrentTrackId(track != null ? track.id : -1);
 	}
 }

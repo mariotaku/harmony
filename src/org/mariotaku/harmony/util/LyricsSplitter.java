@@ -20,12 +20,12 @@ import android.graphics.Paint;
 
 public class LyricsSplitter {
 
-	public static String split(String line, float pixels) {
+	public static String split(final String line, final float pixels, final float max_width) {
 
-		if (measureString(line, pixels) <= 294)
+		if (measureString(line, pixels) <= max_width)
 			return line;
 		else {
-			int half = line.length() / 2;
+			final int half = line.length() / 2;
 			for (int i = 0; i < half / 2; i++) {
 				int pos = half - i;
 				char c = line.charAt(pos);
@@ -61,9 +61,8 @@ public class LyricsSplitter {
 	}
 
 	private static float measureString(String line, float pixels) {
-
-		Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextPaint.setTextSize(pixels);
-		return mTextPaint.measureText(line);
+		final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		textPaint.setTextSize(pixels);
+		return textPaint.measureText(line);
 	}
 }

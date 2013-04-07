@@ -11,52 +11,68 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		// TODO: Implement this method
 		try {
 			mService.open(list, position);
-		} catch (RemoteException e) {}
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public int getQueuePosition() {
 		// TODO: Implement this method
 		try {
 			return mService.getQueuePosition();
-		} catch (RemoteException e) {}
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 		return -1;
 	}
 
 	public boolean isPlaying() {
 		try {
 			return mService.isPlaying();
-		} catch (RemoteException e) {}
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 		return false;
 	}
 
 	public void stop() {
 		try {
 			mService.stop();
-		} catch (RemoteException e) {}
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public void pause() {
 		try {
 			mService.pause();
-		} catch (RemoteException e) {}
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public void play() {
 		try {
 			mService.play();
-		} catch (RemoteException e) {}
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public void prev() {
 		try {
 			mService.prev();
-		} catch (RemoteException e) {}
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public void next() {
 		try {
 			mService.next();
-		} catch (RemoteException e) {}
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public void cycleRepeat() {
@@ -80,7 +96,9 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		// TODO: Implement this method
 		try {
 			return mService.getPosition();
-		} catch (RemoteException e) {}
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 		return -1;
 	}
 
@@ -88,7 +106,9 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		// TODO: Implement this method
 		try {
 			return mService.seek(pos);
-		} catch (RemoteException e) {}
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 		return -1;
 	}
 
@@ -96,17 +116,25 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		// TODO: Implement this method
 		try {
 			mService.enqueue(list, action);
-		} catch (RemoteException e) {}
+			} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public void moveQueueItem(int from, int to) {
-		// TODO: Implement this method
+		try {
+			mService.moveQueueItem(from, to);
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public long[] getQueue() {
 		try {
 			return mService.getQueue();
-		} catch (RemoteException e) {}
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 		return null;
 	}
 
