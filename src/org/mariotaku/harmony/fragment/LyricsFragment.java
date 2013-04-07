@@ -190,7 +190,7 @@ OnScaleGestureListener {
 	
 	@Override
 	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
-		if (mLyrics == null) return;
+		if (mLyrics == null || mService == null) return;
 		mService.seek(mLyrics.get(position - l.getHeaderViewsCount()).getActualTime());
 	}
 

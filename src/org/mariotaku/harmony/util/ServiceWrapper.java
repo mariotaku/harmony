@@ -8,7 +8,6 @@ import org.mariotaku.harmony.model.TrackInfo;
 public class ServiceWrapper implements IMusicPlaybackService {
 
 	public void open(long[] list, int position) {
-		// TODO: Implement this method
 		try {
 			mService.open(list, position);
 		} catch (final RemoteException e) {
@@ -17,7 +16,6 @@ public class ServiceWrapper implements IMusicPlaybackService {
 	}
 
 	public int getQueuePosition() {
-		// TODO: Implement this method
 		try {
 			return mService.getQueuePosition();
 		} catch (final RemoteException e) {
@@ -93,7 +91,6 @@ public class ServiceWrapper implements IMusicPlaybackService {
 	}
 
 	public long getPosition() {
-		// TODO: Implement this method
 		try {
 			return mService.getPosition();
 		} catch (final RemoteException e) {
@@ -103,7 +100,6 @@ public class ServiceWrapper implements IMusicPlaybackService {
 	}
 
 	public long seek(long pos)  {
-		// TODO: Implement this method
 		try {
 			return mService.seek(pos);
 		} catch (final RemoteException e) {
@@ -113,7 +109,6 @@ public class ServiceWrapper implements IMusicPlaybackService {
 	}
 
 	public void enqueue(long[] list, int action) {
-		// TODO: Implement this method
 		try {
 			mService.enqueue(list, action);
 			} catch (final RemoteException e) {
@@ -138,12 +133,20 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		return null;
 	}
 
-	public void setQueuePosition(int index) {
-		// TODO: Implement this method
+	public void setQueuePosition(final int index) {
+		try {
+			mService.setQueuePosition(index);
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public void setQueueId(long id) {
-		// TODO: Implement this method
+		try {
+			mService.setQueueId(id);
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public void setShuffleMode(int shufflemode) {
@@ -157,11 +160,21 @@ public class ServiceWrapper implements IMusicPlaybackService {
 
 	public int removeTracks(int first, int last) {
 		// TODO: Implement this method
+		try {
+			return mService.removeTracks(first, last);
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 		return 0;
 	}
 
 	public int removeTrack(long id) {
 		// TODO: Implement this method
+		try {
+			return mService.removeTrack(id);
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 		return 0;
 	}
 

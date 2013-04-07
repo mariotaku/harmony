@@ -52,7 +52,6 @@ public class LyricsParser {
 		if (encoding == null) {
 			encoding = "UTF-8";
 		}
-
 		return parseLRCString(new String(content, 0, content.length, encoding));
 	}
 

@@ -1221,15 +1221,12 @@ public class MusicPlaybackService extends Service implements Constants {
 	 * @param pos
 	 *            The position in the queue of the track that will be played.
 	 */
-	public void setQueuePosition(int pos) {
-
-		synchronized (this) {
-			stop(false);
-			mPlayPos = pos;
-			openCurrent();
-			play();
-			notifyChange(BROADCAST_MEDIA_CHANGED);
-		}
+	public synchronized void setQueuePosition(final int pos) {
+		stop(false);
+		mPlayPos = pos;
+		openCurrent();
+		play();
+		notifyChange(BROADCAST_MEDIA_CHANGED);
 	}
 
 	public void setRepeatMode(int repeatmode) {
@@ -2077,8 +2074,8 @@ public class MusicPlaybackService extends Service implements Constants {
 		}
 
 		@Override
-		public void setQueuePosition(int index) {
-			mService.get().setQueuePosition(index);
+		public void setQueuePosition(int pos) {
+			mService.get().setQueuePosition(pos);
 		}
 
 		@Override

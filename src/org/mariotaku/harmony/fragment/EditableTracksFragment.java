@@ -18,7 +18,9 @@ public abstract class EditableTracksFragment extends AbsTracksFragment implement
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		getListView().setDragSortListener(this);
+		final DragSortListView list = getListView();
+		list.setDragSortListener(this);
+		//list.setOnItemClickListener(this);
 	}
 	
 	@Override

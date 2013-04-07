@@ -1,13 +1,15 @@
 package org.mariotaku.harmony.fragment;
+
+import org.mariotaku.harmony.loader.NowPlayingLoader;
+import org.mariotaku.harmony.model.NowPlayingCursor;
+import org.mariotaku.harmony.util.ServiceWrapper;
+
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.view.View;
+import android.widget.ListView;
 import android.util.Log;
-import org.mariotaku.harmony.loader.NowPlayingLoader;
-import org.mariotaku.harmony.util.ArrayUtils;
-import org.mariotaku.harmony.util.ServiceWrapper;
-import org.mariotaku.harmony.model.NowPlayingCursor;
 
 public class QueueFragment extends EditableTracksFragment {
 
@@ -67,5 +69,12 @@ public class QueueFragment extends EditableTracksFragment {
 	protected void loadData() {
 		if (mService == null) return;
 		super.loadData();
+	}
+	
+
+	@Override
+	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
+		if (mService == null) return;
+		mService.setQueuePosition(position);
 	}
 }
