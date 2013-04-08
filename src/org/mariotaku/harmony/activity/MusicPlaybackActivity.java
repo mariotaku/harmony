@@ -68,6 +68,7 @@ import org.mariotaku.harmony.fragment.QueueFragment;
 import org.mariotaku.harmony.view.ExtendedRelativeLayout;
 import android.view.ViewGroup;
 import android.view.MotionEvent;
+import org.mariotaku.harmony.util.Utils;
 
 public class MusicPlaybackActivity extends BaseActivity implements Constants, View.OnClickListener, SeekBar.OnSeekBarChangeListener,
 		ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRelativeLayout.TouchInterceptor {
@@ -155,7 +156,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	private PagerAdapter mAdapter;
 
 	private ServiceWrapper mService;
-	private PreferencesEditor mPrefs;
+	private PreferencesEditor mPreferences;
 	private ImageLoaderWrapper mImageLoader;
 	
 	private final Handler mHandler = new Handler();
@@ -239,7 +240,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	public void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mImageLoader = HarmonyApplication.getInstance(this).getImageLoaderWrapper();
-		mPrefs = new PreferencesEditor(this);
+		mPreferences = new PreferencesEditor(this);
 		mRefreshRunnable = new RefreshRunnable(this);
 		requestWindowFeature(Window.FEATURE_PROGRESS);
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -515,17 +516,20 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	protected void onStart() {
 		super.onStart();
 		mPaused = false;
-		mLyricsWakelock = mPrefs.getBooleanPref(KEY_LYRICS_WAKELOCK, DEFAULT_LYRICS_WAKELOCK);
+		mLyricsWakelock = mPreferences.getBooleanPref(KEY_LYRICS_WAKELOCK, DEFAULT_LYRICS_WAKELOCK);
 		if (mLyricsWakelock) {
 			getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
 		} else {
 			getWindow().clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
 		}
+		final int page_pos = mPreferences.getIntState(STATE_KEY_PAGE_POSITION_PLAYBACK, 1);
+		mViewPager.setCurrentItem(Utils.limit(page_pos, 0, mAdapter.getCount()));
 	}
 
 	@Override
 	protected void onStop() {
 		mPaused = true;
+		mPreferences.setIntState(STATE_KEY_PAGE_POSITION_PLAYBACK, mViewPager.getCurrentItem());
 		getWindow().clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
 		super.onStop();
 	}

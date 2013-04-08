@@ -123,10 +123,6 @@ public interface Constants {
 	public final static String BEHAVIOR_PLAY_PAUSE = "play_pause";
 	public final static String DEFAULT_SHAKING_BEHAVIOR = BEHAVIOR_NEXT_SONG;
 
-	public final static String LYRICS_CHARSET = "auto";
-	public final static long LYRICS_REFRESH_RATE = 200;
-	public final static long LYRICS_TIMER_DELAY = 50;
-
 	public final static boolean DEFAULT_LYRICS_WAKELOCK = false;
 	public final static boolean DEFAULT_SPLIT_LYRICS = true;
 	public final static boolean DEFAULT_SKIP_BLANK = true;
@@ -145,9 +141,16 @@ public interface Constants {
 	public final static String STATE_KEY_SEEKPOS = "seekpos";
 	public final static String STATE_KEY_REPEATMODE = "repeatmode";
 	public final static String STATE_KEY_SHUFFLEMODE = "shufflemode";
+	public final static String STATE_KEY_PAGE_POSITION_PLAYBACK = "page_position_playback";
 
 	public final static String PREF_KEY_NUMWEEKS = "numweeks";
+	
+	public final static String PREFERENCE_KEY_LYRICS_TEXTSIZE = "lyrics_textsize";
 
+	public final static float TEXTSIZE_LYRICS_MIN = 12;
+	public final static float TEXTSIZE_LYRICS_MAX = 26;
+	public final static float PREFERENCE_DEFAULT_TEXTSIZE_LYRICS = 14;
+	
 	public final static String KEY_RESCAN_MEDIA = "rescan_media";
 	public final static String KEY_LYRICS_WAKELOCK = "lyrics_wakelock";
 	public final static String KEY_ALBUMART_SIZE = "albumart_size";

@@ -36,41 +36,49 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 import org.mariotaku.harmony.Constants;
+import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.adapter.LyricsAdapter;
 import org.mariotaku.harmony.loader.LyricsLoader;
 import org.mariotaku.harmony.model.Lyrics;
 import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.LyricsTimer;
+import org.mariotaku.harmony.util.PreferencesEditor;
 import org.mariotaku.harmony.util.ServiceWrapper;
+import org.mariotaku.harmony.util.Utils;
 import org.mariotaku.harmony.view.ExtendedFrameLayout;
+import org.mariotaku.harmony.view.ExtendedViewPager;
 import org.mariotaku.harmony.view.iface.IExtendedView.OnSizeChangedListener;
 import org.mariotaku.harmony.view.iface.IExtendedViewGroup.TouchInterceptor;
-import android.widget.Toast;
 
 public class LyricsFragment extends BaseListFragment implements Constants, OnLongClickListener, LoaderManager.LoaderCallbacks<Lyrics>,
 LyricsTimer.Callbacks, OnSizeChangedListener, TouchInterceptor, OnItemLongClickListener,
 OnScaleGestureListener {
 
-	private static float limit(final float value, final float value1, final float value2) {
-		final float min = Math.min(value1, value2), max = Math.max(value1, value2);
-		return Math.max(Math.min(value, max), min);
-	}
+	private PreferencesEditor mPreferences;
  
 	private ScaleGestureDetector mScaleGestureDetector;
 
-	public boolean onScale(ScaleGestureDetector detctor) {
-		final float size = mAdapter.getTextSize() * detctor.getScaleFactor();
-		mAdapter.setTextSize(limit(size, 10, 24));
+	public boolean onScale(ScaleGestureDetector detector) {
+		final float size = mAdapter.getTextSize() * detector.getScaleFactor();
+		mAdapter.setTextSize(Utils.limit(size, TEXTSIZE_LYRICS_MIN, TEXTSIZE_LYRICS_MAX));
 		return true;
 	}
 
 	public boolean onScaleBegin(ScaleGestureDetector detector) {
 		mAdapter.setAutoWrapEnabled(false);
+		final View view = getActivity().findViewById(R.id.pager);
+		if (view instanceof ExtendedViewPager) {
+			((ExtendedViewPager) view).setPagingEnabled(false);
+		}
 		return true;
 	}
 
 	public void onScaleEnd(ScaleGestureDetector detector) {
 		mAdapter.setAutoWrapEnabled(true);
+		final View view = getActivity().findViewById(R.id.pager);
+		if (view instanceof ExtendedViewPager) {
+			((ExtendedViewPager) view).setPagingEnabled(true);
+		}
 	}
 	
 
@@ -78,11 +86,15 @@ OnScaleGestureListener {
 	}
 
 	public boolean onInterceptTouchEvent(ViewGroup view, MotionEvent event) {
+		//mScaleGestureDetector.onTouchEvent(event);
 		return event.getPointerCount() > 1;
 	}
 
 	public boolean onTouchEvent(ViewGroup view, MotionEvent event) {
-		return mScaleGestureDetector.onTouchEvent(event);
+		if (event.getPointerCount() > 1) {
+			mScaleGestureDetector.onTouchEvent(event);
+		}
+		return true;
 	}	
 
 	public boolean onItemLongClick(AdapterView<?> view, View child, int position, long id) {
@@ -166,6 +178,7 @@ OnScaleGestureListener {
 		super.onActivityCreated(savedInstanceState);
 		//mLyricsScrollView.setContentGravity(Gravity.CENTER_HORIZONTAL);
 		//mLyricsInfoMessage.setOnLongClickListener(this);
+		mPreferences = new PreferencesEditor(getActivity());
 		mHeaderView = new View(getActivity());
 		mScaleGestureDetector = new ScaleGestureDetector(getActivity(), this);
 		mListView = getListView();
@@ -198,6 +211,19 @@ OnScaleGestureListener {
 	public boolean onLongClick(final View v) {
 		searchLyrics();
 		return true;
+	}
+	
+	@Override
+	public void onStart() {
+		super.onStart();
+		mAdapter.setTextSize(mPreferences.getFloatPref(PREFERENCE_KEY_LYRICS_TEXTSIZE, PREFERENCE_DEFAULT_TEXTSIZE_LYRICS));
+	}
+	
+
+	@Override
+	public void onStop() {
+		mPreferences.setFloatPref(PREFERENCE_KEY_LYRICS_TEXTSIZE, mAdapter.getTextSize());
+		super.onStop();
 	}
 
 	@Override

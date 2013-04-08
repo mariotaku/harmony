@@ -29,13 +29,6 @@ public class PreferencesEditor implements Constants {
 		return prefs.getBoolean(name, def);
 	}
 
-	public short getEqualizerSetting(short band, short def) {
-
-		SharedPreferences prefs = context.getSharedPreferences(SHAREDPREFS_EQUALIZER,
-				Context.MODE_PRIVATE);
-		return Short.valueOf(prefs.getString(String.valueOf(band), String.valueOf(def)));
-	}
-
 	public float getFloatPref(String name, float def) {
 
 		SharedPreferences prefs = context.getSharedPreferences(SHAREDPREFS_PREFERENCES,
@@ -94,15 +87,6 @@ public class PreferencesEditor implements Constants {
 		Editor editor = preferences.edit();
 		editor.putBoolean(name, value);
 		editor.commit();
-	}
-
-	public void setEqualizerSetting(short band, short value) {
-
-		SharedPreferences prefs = context.getSharedPreferences(SHAREDPREFS_EQUALIZER,
-				Context.MODE_PRIVATE);
-		Editor ed = prefs.edit();
-		ed.putString(String.valueOf(band), String.valueOf(value));
-		ed.commit();
 	}
 
 	public void setFloatPref(String name, float value) {

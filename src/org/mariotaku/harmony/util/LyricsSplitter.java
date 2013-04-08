@@ -16,13 +16,34 @@
 
 package org.mariotaku.harmony.util;
 
+import android.content.Context;
 import android.graphics.Paint;
+import android.util.DisplayMetrics;
 
 public class LyricsSplitter {
 
-	public static String split(final String line, final float pixels, final float max_width) {
+	private final Paint mPaint;
+	private final float mScaledDensity;
+	private float mMaxWidth;
 
-		if (measureString(line, pixels) <= max_width)
+	public LyricsSplitter(final Context context) {
+		mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		final DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+		mScaledDensity = metrics.scaledDensity;
+		setMaxWidth(metrics.widthPixels);
+	}
+	
+	public void setTextSize(final float sizeSp) {
+		mPaint.setTextSize(sizeSp * mScaledDensity);
+	}
+	
+	public void setMaxWidth(final float widthPx) {
+		mMaxWidth = widthPx;
+	}
+ 
+	public String split(final String line) {
+
+		if (mPaint.measureText(line) <= mMaxWidth)
 			return line;
 		else {
 			final int half = line.length() / 2;
@@ -60,9 +81,4 @@ public class LyricsSplitter {
 		}
 	}
 
-	private static float measureString(String line, float pixels) {
-		final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		textPaint.setTextSize(pixels);
-		return textPaint.measureText(line);
-	}
 }

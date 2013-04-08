@@ -23,6 +23,7 @@ import android.content.Context;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.util.Log;
 
 public class ExtendedViewPager extends ViewPager {
 
@@ -36,7 +37,12 @@ public class ExtendedViewPager extends ViewPager {
 	@Override
 	public boolean onInterceptTouchEvent(final MotionEvent event) {
 		if (!mPagingEnabled) return false;
-		return super.onInterceptTouchEvent(event);
+		try {
+			return super.onInterceptTouchEvent(event);
+		} catch (final IllegalArgumentException e) {
+			// Workaround for multitouch crashes
+		}
+		return false;
 	}
 
 	@Override
