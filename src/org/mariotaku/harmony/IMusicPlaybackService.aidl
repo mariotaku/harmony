@@ -52,8 +52,6 @@ interface IMusicPlaybackService {
 	void setRepeatMode(int mode);
 	int getShuffleMode();
 	int getRepeatMode();
-	void cycleRepeat();
-	void toggleShuffle();
 	
 	int getAudioSessionId();
 	void startSleepTimer(long millisecond, boolean gentle);

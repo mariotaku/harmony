@@ -24,6 +24,7 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		return -1;
 	}
 
+	@Override
 	public boolean isPlaying() {
 		try {
 			return mService.isPlaying();
@@ -33,6 +34,7 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		return false;
 	}
 
+	@Override
 	public void stop() {
 		try {
 			mService.stop();
@@ -41,6 +43,7 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		}
 	}
 
+	@Override
 	public void pause() {
 		try {
 			mService.pause();
@@ -49,6 +52,7 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		}
 	}
 
+	@Override
 	public void play() {
 		try {
 			mService.play();
@@ -57,6 +61,7 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		}
 	}
 
+	@Override
 	public void prev() {
 		try {
 			mService.prev();
@@ -65,6 +70,7 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		}
 	}
 
+	@Override
 	public void next() {
 		try {
 			mService.next();
@@ -73,14 +79,7 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		}
 	}
 
-	public void cycleRepeat() {
-		// TODO: Implement this method
-	}
-
-	public void toggleShuffle() {
-		// TODO: Implement this method
-	}
-
+	@Override
 	public long getDuration() {
 		try {
 			return mService.getDuration();

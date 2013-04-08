@@ -275,10 +275,6 @@ public class MusicPlaybackService extends Service implements Constants {
 				pause();
 				mPausedByTransientLossOfFocus = false;
 				seek(0);
-			} else if (CMDCYCLEREPEAT.equals(cmd) || CYCLEREPEAT_ACTION.equals(action)) {
-				cycleRepeat();
-			} else if (CMDTOGGLESHUFFLE.equals(cmd) || TOGGLESHUFFLE_ACTION.equals(action)) {
-				toggleShuffle();
 			} else if (CMDTOGGLEFAVORITE.equals(cmd)) {
 				if (!isFavorite()) {
 					addToFavorites();
@@ -398,19 +394,6 @@ public class MusicPlaybackService extends Service implements Constants {
 		notifyChange(BROADCAST_MEDIA_CHANGED);
 	}
 
-	public void cycleRepeat() {
-
-		if (mRepeatMode == REPEAT_MODE_NONE) {
-			setRepeatMode(REPEAT_MODE_ALL);
-		} else if (mRepeatMode == REPEAT_MODE_ALL) {
-			setRepeatMode(REPEAT_MODE_CURRENT);
-			if (mShuffleMode != SHUFFLE_MODE_NONE) {
-				setShuffleMode(SHUFFLE_MODE_NONE);
-			}
-		} else {
-			setRepeatMode(REPEAT_MODE_NONE);
-		}
-	}
 
 	/**
 	 * Returns the duration of the file in milliseconds. Currently this method
@@ -716,6 +699,7 @@ public class MusicPlaybackService extends Service implements Constants {
 		// case.
 		Message msg = mDelayedStopHandler.obtainMessage();
 		mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+		Log.e(LOGTAG_SERVICE, String.format("Service started, repeat mode:%d, shuffle mode:%d", mRepeatMode, mShuffleMode));
 	}
 
 	@Override
@@ -818,10 +802,6 @@ public class MusicPlaybackService extends Service implements Constants {
 				pause();
 				mPausedByTransientLossOfFocus = false;
 				seek(0);
-			} else if (CMDCYCLEREPEAT.equals(cmd) || CYCLEREPEAT_ACTION.equals(action)) {
-				cycleRepeat();
-			} else if (CMDTOGGLESHUFFLE.equals(cmd) || TOGGLESHUFFLE_ACTION.equals(action)) {
-				toggleShuffle();
 			} else if (BROADCAST_PLAYSTATUS_REQUEST.equals(action)) {
 				notifyChange(BROADCAST_PLAYSTATUS_RESPONSE);
 			}
@@ -1237,7 +1217,7 @@ public class MusicPlaybackService extends Service implements Constants {
 		mRepeatMode = mode;
 		notifyChange(BROADCAST_REPEAT_MODE_CHANGED);
 		saveQueue(false);
-		mPreferences.setIntState(STATE_KEY_REPEATMODE, mRepeatMode);
+		mPreferences.setIntPref(PREFERENCE_KEY_REPEAT_MODE, mRepeatMode);
 	}
 
 	public synchronized void setShuffleMode(int shufflemode) {
@@ -1248,7 +1228,7 @@ public class MusicPlaybackService extends Service implements Constants {
 		mShuffleMode = shufflemode;
 		notifyChange(BROADCAST_SHUFFLE_MODE_CHANGED);
 		saveQueue(false);
-		mPreferences.setIntState(STATE_KEY_SHUFFLEMODE, mShuffleMode);
+		mPreferences.setIntPref(PREFERENCE_KEY_SHUFFLE_MODE, mShuffleMode);
 	}
 
 	/**
@@ -1273,20 +1253,6 @@ public class MusicPlaybackService extends Service implements Constants {
 			play();
 		}
 		return isPlaying();
-	}
-
-	public void toggleShuffle() {
-		if (mShuffleMode == SHUFFLE_MODE_NONE) {
-			setShuffleMode(SHUFFLE_MODE_ALL);
-			if (mRepeatMode == REPEAT_MODE_CURRENT) {
-				setRepeatMode(REPEAT_MODE_ALL);
-			}
-		} else if (mShuffleMode == SHUFFLE_MODE_ALL) {
-			setShuffleMode(SHUFFLE_MODE_NONE);
-		} else {
-			setShuffleMode(SHUFFLE_MODE_NONE);
-			Log.e("MediaPlaybackService", "Invalid shuffle mode: " + mShuffleMode);
-		}
 	}
 
 	// insert the list of songs at the specified position in the playlist
@@ -1431,14 +1397,9 @@ public class MusicPlaybackService extends Service implements Constants {
 	}
 
 	private void reloadQueue() {
-
 		String q = null;
 
-		int id = mCardId;
-		if (getSharedPreferences(SHAREDPREFS_STATES, Context.MODE_PRIVATE).contains(
-				STATE_KEY_CARDID)) {
-			id = mPreferences.getIntState(STATE_KEY_CARDID, mCardId);
-		}
+		final int id = mPreferences.getIntState(STATE_KEY_CARDID, mCardId);
 		if (id == mCardId) {
 			// Only restore the saved playlist if the card is still
 			// the same one as when the playlist was saved
@@ -1513,8 +1474,8 @@ public class MusicPlaybackService extends Service implements Constants {
 			Log.d(LOGTAG_SERVICE, "restored queue, currently at position " + getPosition() + "/"
 					+ getDuration() + " (requested " + seekpos + ")");
 
-			setRepeatMode(mPreferences.getIntState(STATE_KEY_REPEATMODE, REPEAT_MODE_NONE));
-			setShuffleMode(mPreferences.getIntState(STATE_KEY_SHUFFLEMODE, SHUFFLE_MODE_NONE));
+			setRepeatMode(mPreferences.getIntPref(PREFERENCE_KEY_REPEAT_MODE, REPEAT_MODE_NONE));
+			setShuffleMode(mPreferences.getIntPref(PREFERENCE_KEY_SHUFFLE_MODE, SHUFFLE_MODE_NONE));
 			if (mShuffleMode != SHUFFLE_MODE_NONE) {
 				// in shuffle mode we need to restore the history too
 				q = mPreferences.getStringState(STATE_KEY_HISTORY, "");
@@ -1686,10 +1647,6 @@ public class MusicPlaybackService extends Service implements Constants {
 		if (mPlayer.isInitialized()) {
 			mPreferences.setLongState(STATE_KEY_SEEKPOS, mPlayer.getPosition());
 		}
-
-		mPreferences.setIntState(STATE_KEY_REPEATMODE, mRepeatMode);
-		mPreferences.setIntState(STATE_KEY_SHUFFLEMODE, mShuffleMode);
-
 		// Log.i("@@@@ service", "saved state in " + (System.currentTimeMillis()
 		// - start) + " ms");
 	}
@@ -1945,13 +1902,8 @@ public class MusicPlaybackService extends Service implements Constants {
 
 		private final WeakReference<MusicPlaybackService> mService;
 
-		ServiceStub(final MusicPlaybackService service) {
+		private ServiceStub(final MusicPlaybackService service) {
 			mService = new WeakReference<MusicPlaybackService>(service);
-		}
-
-		@Override
-		public void cycleRepeat() {
-			mService.get().cycleRepeat();
 		}
 
 		@Override
@@ -2094,9 +2046,5 @@ public class MusicPlaybackService extends Service implements Constants {
 			return mService.get().togglePause();
 		}
 
-		@Override
-		public void toggleShuffle() {
-			mService.get().toggleShuffle();
-		}
 	}
 }

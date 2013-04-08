@@ -69,10 +69,9 @@ public class ServiceUtils implements Constants {
 
 	private static class ServiceBinder implements ServiceConnection {
 
-		ServiceConnection mCallback;
+		private final ServiceConnection mCallback;
 
-		ServiceBinder(ServiceConnection callback) {
-
+		private ServiceBinder(final ServiceConnection callback) {
 			mCallback = callback;
 		}
 

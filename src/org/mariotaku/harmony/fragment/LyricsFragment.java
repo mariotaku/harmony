@@ -181,7 +181,7 @@ public class LyricsFragment extends BaseListFragment implements Constants, OnLon
 		mLyrics = data;
 		mAdapter.loadLyrics(data);
 		mLyricsTimer.loadLyrics(data);
-		setListShown(true);		
+		setListShown(true);	
 	}
 
 	@Override

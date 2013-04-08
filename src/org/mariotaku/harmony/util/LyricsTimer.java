@@ -8,6 +8,11 @@ import org.mariotaku.harmony.model.Lyrics;
 
 public final class LyricsTimer {
 
+	private static final int LYRICS_REFRESHED = 1;
+	private static final int LYRICS_RESUMED = 2;
+	private static final int LYRICS_POSITION_CHANGED = 3;
+	private static final int LYRICS_PAUSED = 4;
+
 	private final Callbacks mListener;
 	private final Handler mHandler;
 
@@ -26,6 +31,10 @@ public final class LyricsTimer {
 		mLyricsHandler.sendEmptyMessage(LYRICS_RESUMED);
 	}
 	
+	public int getCurrentIndex() {
+		return mCurrentIndex;
+	}
+	
 	public void resume() {
 		mLyricsHandler.sendEmptyMessage(LYRICS_RESUMED);
 	}
@@ -33,11 +42,6 @@ public final class LyricsTimer {
 	public void pause() {
 		mLyricsHandler.sendEmptyMessage(LYRICS_PAUSED);
 	}
-
-	private static final int LYRICS_REFRESHED = 1;
-	private static final int LYRICS_RESUMED = 2;
-	private static final int LYRICS_POSITION_CHANGED = 3;
-	private static final int LYRICS_PAUSED = 4;
 
 	private Handler mLyricsHandler = new Handler() {
 

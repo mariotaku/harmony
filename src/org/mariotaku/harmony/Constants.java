@@ -140,12 +140,12 @@ public interface Constants {
 	public final static String STATE_KEY_QUEUE = "queue";
 	public final static String STATE_KEY_HISTORY = "history";
 	public final static String STATE_KEY_SEEKPOS = "seekpos";
-	public final static String STATE_KEY_REPEATMODE = "repeatmode";
-	public final static String STATE_KEY_SHUFFLEMODE = "shufflemode";
 
 	public final static String PREF_KEY_NUMWEEKS = "numweeks";
 	
 	public final static String PREFERENCE_KEY_LYRICS_TEXTSIZE = "lyrics_textsize";
+	public final static String PREFERENCE_KEY_REPEAT_MODE = "repeat_mode";
+	public final static String PREFERENCE_KEY_SHUFFLE_MODE = "shuffle_mode";
 
 	public final static float TEXTSIZE_LYRICS_MIN = 12;
 	public final static float TEXTSIZE_LYRICS_MAX = 26;
@@ -154,7 +154,6 @@ public interface Constants {
 	public final static String KEY_RESCAN_MEDIA = "rescan_media";
 	public final static String KEY_LYRICS_WAKELOCK = "lyrics_wakelock";
 	public final static String KEY_ALBUMART_SIZE = "albumart_size";
-	public final static String KEY_DISPLAY_LYRICS = "display_lyrics";
 	public final static String KEY_PLUGINS_MANAGER = "plugins_manager";
 	public final static String KEY_ENABLE_SCROBBLING = "enable_scrobbling";
 	public final static String KEY_GENTLE_SLEEPTIMER = "gentle_sleeptimer";
@@ -166,12 +165,6 @@ public interface Constants {
 	public final static String KEY_UI_COLOR = "ui_color";
 	public final static String KEY_AUTO_COLOR = "auto_color";
 	public final static String KEY_CUSTOMIZED_COLOR = "customized_color";
-	public final static String KEY_EQUALIZER_ENABLED = "equalizer_enabled";
-	public final static String KEY_EQUALIZER_SETTINGS = "equalizer_settings";
-	public final static String KEY_SHAKE_ENABLED = "shake_enabled";
-	public final static String KEY_SHAKING_THRESHOLD = "shaking_threshold";
-	public final static String KEY_SHAKING_BEHAVIOR = "shaking_behavior";
-	public final static String KEY_BLUR_BACKGROUND = "blur_background";
 
 	public final static float DEFAULT_SHAKING_THRESHOLD = 5000f;
 
