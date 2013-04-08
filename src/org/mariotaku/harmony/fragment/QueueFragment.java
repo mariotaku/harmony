@@ -1,7 +1,7 @@
 package org.mariotaku.harmony.fragment;
 
-import org.mariotaku.harmony.loader.NowPlayingLoader;
-import org.mariotaku.harmony.model.NowPlayingCursor;
+import org.mariotaku.harmony.loader.QueueLoader;
+import org.mariotaku.harmony.model.QueueCursor;
 import org.mariotaku.harmony.util.ServiceWrapper;
 
 import android.content.Loader;
@@ -14,17 +14,17 @@ import android.util.Log;
 public class QueueFragment extends EditableTracksFragment {
 
 	private ServiceWrapper mService;
-	private NowPlayingCursor mCursor;
+	private QueueCursor mCursor;
 
 	@Override
 	public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
-		return new NowPlayingLoader(getActivity(), mService, AUDIO_COLUMNS);
+		return new QueueLoader(getActivity(), mService, AUDIO_COLUMNS);
 	}
 	
 	@Override
 	public void onLoadFinished(final Loader<Cursor> loader, final Cursor cursor) {
 		super.onLoadFinished(loader, cursor);
-		mCursor = cursor instanceof NowPlayingCursor ? (NowPlayingCursor) cursor : null;
+		mCursor = cursor instanceof QueueCursor ? (QueueCursor) cursor : null;
 	}
 	
 

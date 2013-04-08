@@ -531,7 +531,7 @@ public class MusicUtils implements Constants {
 	
 	public static int getCurrentShuffleMode() {
 
-		int mode = SHUFFLE_NONE;
+		int mode = SHUFFLE_MODE_NONE;
 		if (sService != null) {
 			try {
 				mode = sService.getShuffleMode();
@@ -1316,7 +1316,7 @@ public class MusicUtils implements Constants {
 		}
 		try {
 			if (force_shuffle) {
-				sService.setShuffleMode(SHUFFLE_NORMAL);
+				sService.setShuffleMode(SHUFFLE_MODE_ALL);
 			}
 			long curid = sService.getTrackInfo().id;
 			int curpos = sService.getQueuePosition();

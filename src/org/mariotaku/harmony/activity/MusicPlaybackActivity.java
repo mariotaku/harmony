@@ -71,25 +71,47 @@ import android.view.MotionEvent;
 import org.mariotaku.harmony.util.Utils;
 
 public class MusicPlaybackActivity extends BaseActivity implements Constants, View.OnClickListener, SeekBar.OnSeekBarChangeListener,
-		ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRelativeLayout.TouchInterceptor {
+ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRelativeLayout.TouchInterceptor, ActionBar.OnMenuVisibilityListener {
 
-	public void dispatchTouchEvent(ViewGroup view, MotionEvent event) {
-	}
+	private static final int REQUEST_EQUALIZER = 1;
 
-	public boolean onInterceptTouchEvent(ViewGroup view, MotionEvent event) {
-		if (true) return false;
-		if (event.getAction() == MotionEvent.ACTION_DOWN) {
-			if (mActionBar.isShowing()) {
-				mActionBar.hide();
-			} else {
-				mActionBar.show();
-			}
-		}
-		return false;
-	}
+	private ActionBar mActionBar;
+	private boolean mIsShowingMenu;
 
-	public boolean onTouchEvent(ViewGroup view, MotionEvent event) {
-		return false;
+	private boolean mSeeking = false;
+
+	private boolean mDeviceHasDpad;
+
+	private long mStartSeekPos = 0;
+
+	private long mLastSeekEventTime;
+	private boolean mIntentDeRegistered = false;
+
+	private long mPosOverride = -1;
+	private boolean mFromTouch = false;
+	private long mDuration;
+	private boolean mPaused;
+
+	private TextView mTrackName, mTrackDetail;
+	private TextView mCurrentTime, mTotalTime;
+	private SeekBar mSeekBar;
+	private ImageView mAlbumArt;
+	private ViewPager mViewPager;
+	private RepeatingImageButton mPrevButton, mNextButton;
+	private ImageButton mPlayPauseButton;
+	private ExtendedRelativeLayout mPlaybackContainer;
+
+	private PagerAdapter mAdapter;
+
+	private ServiceWrapper mService;
+	private PreferencesEditor mPreferences;
+	private ImageLoaderWrapper mImageLoader;
+
+	private final Handler mHandler = new Handler();
+	private Runnable mRefreshRunnable, mHideActionBarRunnable;
+	
+	@Override
+	public void dispatchTouchEvent(final ViewGroup view, final MotionEvent event) {
 	}
 	
 
@@ -110,6 +132,38 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		}
 	}	
 
+	@Override
+	public boolean onInterceptTouchEvent(ViewGroup view, MotionEvent event) {
+		if (event.getAction() == MotionEvent.ACTION_DOWN) {
+			mActionBar.show();
+			mHandler.removeCallbacks(mHideActionBarRunnable);
+			if (!mIsShowingMenu) {
+				mHandler.postDelayed(mHideActionBarRunnable, 3000);
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public void onMenuVisibilityChanged(boolean visible) {
+		mIsShowingMenu = visible;
+		mHandler.removeCallbacks(mHideActionBarRunnable);
+		if (!visible) {
+			mHandler.postDelayed(mHideActionBarRunnable, 3000);
+		}
+	}
+
+	@Override
+	public boolean onTouchEvent(ViewGroup view, MotionEvent event) {
+		return false;
+	}
+	
+	@Override
+	public void onPageSelected(final int position) {
+		mViewPager.setBackgroundColor(position == 1 ? Color.TRANSPARENT : 0x80000000);
+	}
+
+	@Override
 	public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
 		if (position == 0) {
 			mViewPager.setBackgroundColor(Color.argb((int) (0x80 * (1 - positionOffset)), 0, 0, 0));
@@ -119,61 +173,13 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 			mViewPager.setBackgroundColor(0x80000000);
 		}
 	}
-
-	public void onPageSelected(final int position) {
-		mViewPager.setBackgroundColor(position == 1 ? Color.TRANSPARENT : 0x80000000);
-	}
-
+	
+	@Override
 	public void onPageScrollStateChanged(final int state) {
 	}
-	
-
-	private boolean mSeeking = false;
-
-	private boolean mDeviceHasDpad;
-
-	private long mStartSeekPos = 0;
-
-	private long mLastSeekEventTime;
-	private boolean mIntentDeRegistered = false;
-
-	private boolean mLyricsWakelock = DEFAULT_LYRICS_WAKELOCK;
-
-	private TextView mTrackName, mTrackDetail;
-	private long mPosOverride = -1;
-	private boolean mFromTouch = false;
-	private long mDuration;
-	private boolean mPaused;
-
-	private TextView mCurrentTime, mTotalTime;
-	private SeekBar mSeekBar;
-	private ImageView mAlbumArt;
-	private ViewPager mViewPager;
-	private RepeatingImageButton mPrevButton, mNextButton;
-	private ImageButton mPlayPauseButton;
-	private ExtendedRelativeLayout mPlaybackContainer;
-	
-	private PagerAdapter mAdapter;
-
-	private ServiceWrapper mService;
-	private PreferencesEditor mPreferences;
-	private ImageLoaderWrapper mImageLoader;
-	
-	private final Handler mHandler = new Handler();
-	private Runnable mRefreshRunnable;
-
-	int mInitialX = -1;
-
-	int mLastX = -1;
-
-	int mTextWidth = 0;
-
-	int mViewWidth = 0;
-	boolean mDraggingLabel = false;
 
 	@Override
-	public void onProgressChanged(SeekBar bar, int progress, boolean fromuser) {
-
+	public void onProgressChanged(final SeekBar bar, final int progress, final boolean fromuser) {
 		if (!fromuser || mService == null) return;
 		mPosOverride = mDuration * progress / 1000;
 		mService.seek(mPosOverride);
@@ -214,26 +220,6 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 			}
 		}
 	}
-	
-	private static final class RefreshRunnable implements Runnable {
-
-		private final MusicPlaybackActivity mActivity;
-		
-		private RefreshRunnable(final MusicPlaybackActivity activity) {
-			mActivity = activity;
-		}
-		
-		@Override
-		public void run() {
-			mActivity.queueNextRefresh(mActivity.refreshNow());
-		}
-		
-		
-	}
-
-	private static final int REQUEST_EQUALIZER = 1;
-
-	private ActionBar mActionBar;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -242,14 +228,12 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		mImageLoader = HarmonyApplication.getInstance(this).getImageLoaderWrapper();
 		mPreferences = new PreferencesEditor(this);
 		mRefreshRunnable = new RefreshRunnable(this);
-		requestWindowFeature(Window.FEATURE_PROGRESS);
+		mHideActionBarRunnable = new HideActionBarRunnable(this);
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
 		setContentView(R.layout.music_playback);
 		mActionBar = getActionBar();
+		mActionBar.addOnMenuVisibilityListener(this);
 		mActionBar.hide();
-		//mActionBar.setCustomView(R.layout.actionbar_music_playback);
-		mActionBar.setDisplayShowTitleEnabled(false);
 
 		mSeekBar.setMax(1000);
 		mSeekBar.setOnSeekBarChangeListener(this);
@@ -276,8 +260,8 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.music_playback, menu);
-		return super.onCreateOptionsMenu(menu);
+		getMenuInflater().inflate(R.menu.menu_music_playback, menu);
+		return true;
 	}
 
 	@Override
@@ -414,7 +398,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-
+		if (mService == null) return true;
 		switch (item.getItemId()) {
 			case MENU_ADD_TO_PLAYLIST: {
 				final Intent intent = new Intent(INTENT_ADD_TO_PLAYLIST);
@@ -461,18 +445,39 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 			case ADD_TO_FAVORITES:{
 				toggleFavorite();
 				break;}
+			case MENU_SHUFFLE_MODE_NONE: {
+				mService.setShuffleMode(SHUFFLE_MODE_NONE);
+				break;
+			}
+			case MENU_SHUFFLE_MODE_ALL: {
+				mService.setShuffleMode(SHUFFLE_MODE_ALL);
+				break;
+			}
+			case MENU_REPEAT_MODE_NONE: {
+				mService.setRepeatMode(REPEAT_MODE_NONE);
+				break;
+			}
+			case MENU_REPEAT_MODE_ALL: {
+				mService.setRepeatMode(REPEAT_MODE_ALL);
+				break;
+			}
+			case MENU_REPEAT_MODE_CURRENT: {
+				mService.setRepeatMode(REPEAT_MODE_CURRENT);
+				break;
+			}
 		}
-
-		return super.onOptionsItemSelected(item);
+		return true;
 	}
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		MenuItem item = menu.findItem(EQUALIZER);
-		final PackageManager pm = getPackageManager();
-		final Intent intent = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
-		if (item != null) item.setVisible(!pm.queryIntentActivities(intent, 0).isEmpty());
-		item = menu.findItem(ADD_TO_FAVORITES);
+		final MenuItem equalizer = menu.findItem(EQUALIZER);
+		if (equalizer != null) {
+			final PackageManager pm = getPackageManager();
+			final Intent intent = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
+			equalizer.setVisible(!pm.queryIntentActivities(intent, 0).isEmpty());
+		}
+//		final MenuItem item = menu.findItem(ADD_TO_FAVORITES);
 //		try {
 //			if (item != null && mService != null)
 //				item.setIcon(mService.isFavorite(mService.getAudioId()) ? R.drawable.ic_menu_star
@@ -480,7 +485,33 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 //		} catch (RemoteException e) {
 //			e.printStackTrace();
 //		}
-		return super.onPrepareOptionsMenu(menu);
+		if (mService != null) {
+			switch (mService.getShuffleMode()) {
+				case SHUFFLE_MODE_ALL: {
+					menu.findItem(MENU_SHUFFLE_MODE_ALL).setChecked(true);
+					break;
+				}
+				default: {
+					menu.findItem(MENU_SHUFFLE_MODE_NONE).setChecked(true);
+					break;
+				}
+			}
+			switch (mService.getRepeatMode()) {
+				case REPEAT_MODE_ALL: {
+					menu.findItem(MENU_REPEAT_MODE_ALL).setChecked(true);
+					break;
+				}
+				case REPEAT_MODE_CURRENT: {
+					menu.findItem(MENU_REPEAT_MODE_CURRENT).setChecked(true);
+					break;
+				}
+				default: {
+					menu.findItem(MENU_REPEAT_MODE_NONE).setChecked(true);
+					break;
+				}
+			}
+		}
+		return true;
 	}
 	
 	@Override
@@ -516,8 +547,8 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	protected void onStart() {
 		super.onStart();
 		mPaused = false;
-		mLyricsWakelock = mPreferences.getBooleanPref(KEY_LYRICS_WAKELOCK, DEFAULT_LYRICS_WAKELOCK);
-		if (mLyricsWakelock) {
+		final boolean lyrics_wakelock = mPreferences.getBooleanPref(KEY_LYRICS_WAKELOCK, DEFAULT_LYRICS_WAKELOCK);
+		if (lyrics_wakelock) {
 			getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
 		} else {
 			getWindow().clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -534,6 +565,31 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		super.onStop();
 	}
 	
+	@Override
+	protected void onDestroy() {
+		mActionBar.removeOnMenuVisibilityListener(this);
+		super.onDestroy();
+	}
+
+
+	protected void onCurrentMediaChanged() {
+		updateTrackInfo();
+		updatePlayPauseButton();
+	}
+	
+	protected void onPlayStateChanged() {
+		updatePlayPauseButton();
+	}
+	
+	protected void onRepeatModeChanged() {
+		invalidateOptionsMenu();
+	}
+
+	protected void onShuffleModeChanged() {
+		invalidateOptionsMenu();
+	}
+	
+	@Override
 	public void onContentChanged() {
 		super.onContentChanged();
 		mPlaybackContainer = (ExtendedRelativeLayout) findViewById(R.id.music_playback);
@@ -700,15 +756,6 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 	}
 
 	
-	protected void onPlayStateChanged() {
-		updatePlayPauseButton();
-	}
-	
-	protected void onCurrentMediaChanged() {
-		updateTrackInfo();
-		updatePlayPauseButton();
-	}
-	
 	private void updateTrackInfo() {
 		if (mService == null) return;
 		final TrackInfo track = mService.getTrackInfo();
@@ -745,7 +792,7 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		}
 	}
 
-	private class PagerAdapter extends FragmentStatePagerAdapter {
+	private static class PagerAdapter extends FragmentStatePagerAdapter {
 
 		private final Context mContext;
 		private final ArrayList<Class<? extends Fragment>> mFragments = new ArrayList<Class<? extends Fragment>>();
@@ -768,6 +815,37 @@ public class MusicPlaybackActivity extends BaseActivity implements Constants, Vi
 		@Override
 		public Fragment getItem(int position) {
 			return Fragment.instantiate(mContext, mFragments.get(position).getName());
+		}
+
+	}
+
+	private static final class RefreshRunnable implements Runnable {
+
+		private final MusicPlaybackActivity mActivity;
+
+		private RefreshRunnable(final MusicPlaybackActivity activity) {
+			mActivity = activity;
+		}
+
+		@Override
+		public void run() {
+			mActivity.queueNextRefresh(mActivity.refreshNow());
+		}
+
+	}
+
+
+	private static final class HideActionBarRunnable implements Runnable {
+
+		private final ActionBar mActionBar;
+
+		private HideActionBarRunnable(final Activity activity) {
+			mActionBar = activity.getActionBar();
+		}
+
+		@Override
+		public void run() {
+			mActionBar.hide();
 		}
 
 	}

@@ -32,26 +32,29 @@ interface IMusicPlaybackService {
 	void next();
 	void stop();
 	long seek(long pos);
-	void open(in long [] list, int position);
 	boolean togglePause();
-	int getQueuePosition();
 	boolean isPlaying();
-	void cycleRepeat();
-	void toggleShuffle();
+	TrackInfo getTrackInfo();
 	long getDuration();
 	long getPosition();
-	void enqueue(in long [] list, int action);
-	void moveQueueItem(int from, int to);
+
+	void open(in long [] list, int position);
 	long [] getQueue();
-	void setQueuePosition(int index);
+	int getQueuePosition();
+	void setQueuePosition(int position);
 	void setQueueId(long id);
-	TrackInfo getTrackInfo();
-	void setShuffleMode(int shufflemode);
-	int getShuffleMode();
+	void moveQueueItem(int from, int to);
+	void enqueue(in long [] list, int action);
 	int removeTracks(int first, int last);
 	int removeTrack(long id);
-	void setRepeatMode(int repeatmode);
+	
+	void setShuffleMode(int mode);
+	void setRepeatMode(int mode);
+	int getShuffleMode();
 	int getRepeatMode();
+	void cycleRepeat();
+	void toggleShuffle();
+	
 	int getAudioSessionId();
 	void startSleepTimer(long millisecond, boolean gentle);
 	void stopSleepTimer();

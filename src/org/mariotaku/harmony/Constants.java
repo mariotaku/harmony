@@ -30,12 +30,12 @@ public interface Constants {
 	public final static int ID_NOTIFICATION_PLAYBACK = 1;
 	public final static int ID_NOTIFICATION_SLEEPTIMER = 2;
 
-	public final static int SHUFFLE_NONE = 0;
-	public final static int SHUFFLE_NORMAL = 1;
+	public final static int SHUFFLE_MODE_NONE = 0;
+	public final static int SHUFFLE_MODE_ALL = 1;
 
-	public final static int REPEAT_NONE = 0;
-	public final static int REPEAT_CURRENT = 1;
-	public final static int REPEAT_ALL = 2;
+	public final static int REPEAT_MODE_NONE = 0;
+	public final static int REPEAT_MODE_CURRENT = 1;
+	public final static int REPEAT_MODE_ALL = 2;
 
 	public final static int PAGE_ARTIST = 0;
 	public final static int PAGE_ALBUM = 1;
@@ -133,7 +133,8 @@ public interface Constants {
 	public final static int DEFAULT_VISUALIZER_ACCURACY = 1;
 	public final static boolean DEFAULT_VISUALIZER_ANTIALIAS = true;
 
-	public final static String STATE_KEY_CURRENTTAB = "currenttab";
+	public final static String STATE_KEY_PAGE_POSITION_BROWSER = "page_position_browser";
+	public final static String STATE_KEY_PAGE_POSITION_PLAYBACK = "page_position_playback";
 	public final static String STATE_KEY_CURRPOS = "curpos";
 	public final static String STATE_KEY_CARDID = "cardid";
 	public final static String STATE_KEY_QUEUE = "queue";
@@ -141,7 +142,6 @@ public interface Constants {
 	public final static String STATE_KEY_SEEKPOS = "seekpos";
 	public final static String STATE_KEY_REPEATMODE = "repeatmode";
 	public final static String STATE_KEY_SHUFFLEMODE = "shufflemode";
-	public final static String STATE_KEY_PAGE_POSITION_PLAYBACK = "page_position_playback";
 
 	public final static String PREF_KEY_NUMWEEKS = "numweeks";
 	
@@ -239,14 +239,14 @@ public interface Constants {
 	public final static String INTENT_PLUGINS_MANAGER = "org.mariotaku.harmony.PLUGINS_MANAGER";
 	public final static String INTENT_PLAYBACK_SERVICE = "org.mariotaku.harmony.PLAYBACK_SERVICE";
 
-	public final static String BROADCAST_PLAYSTATE_CHANGED = "org.mariotaku.harmony.playstatechanged";
+	public final static String BROADCAST_PLAY_STATE_CHANGED = "org.mariotaku.harmony.playstatechanged";
 	public final static String BROADCAST_MEDIA_CHANGED = "org.mariotaku.harmony.metachanged";
 	public final static String BROADCAST_FAVORITESTATE_CHANGED = "org.mariotaku.harmony.favoritestatechanged";
 	public final static String BROADCAST_NEW_LYRICS_LOADED = "org.mariotaku.harmony.newlyricsloaded";
 	public final static String BROADCAST_LYRICS_REFRESHED = "org.mariotaku.harmony.lyricsrefreshed";
 	public final static String BROADCAST_QUEUE_CHANGED = "org.mariotaku.harmony.queuechanged";
-	public final static String BROADCAST_REPEATMODE_CHANGED = "org.mariotaku.harmony.repeatmodechanged";
-	public final static String BROADCAST_SHUFFLEMODE_CHANGED = "org.mariotaku.harmony.shufflemodechanged";
+	public final static String BROADCAST_REPEAT_MODE_CHANGED = "org.mariotaku.harmony.repeatmodechanged";
+	public final static String BROADCAST_SHUFFLE_MODE_CHANGED = "org.mariotaku.harmony.shufflemodechanged";
 	public final static String BROADCAST_PLAYBACK_COMPLETE = "org.mariotaku.harmony.playbackcomplete";
 	public final static String BROADCAST_ASYNC_OPEN_COMPLETE = "org.mariotaku.harmony.asyncopencomplete";
 	public final static String BROADCAST_SEEK_CHANGED = "org.mariotaku.harmony.refreshui";
@@ -278,6 +278,13 @@ public interface Constants {
 	public final static int REMOVE = R.id.remove;
 	public final static int PLAY_PAUSE = R.id.play_pause;
 	public final static int NEXT = R.id.next;
+	public final static int MENU_SHUFFLE_MODE = R.id.shuffle_mode;
+	public final static int MENU_REPEAT_MODE = R.id.repeat_mode;
+	public final static int MENU_SHUFFLE_MODE_NONE = R.id.shuffle_mode_none;
+	public final static int MENU_SHUFFLE_MODE_ALL = R.id.shuffle_mode_all;
+	public final static int MENU_REPEAT_MODE_NONE = R.id.repeat_mode_none;
+	public final static int MENU_REPEAT_MODE_ALL = R.id.repeat_mode_all;
+	public final static int MENU_REPEAT_MODE_CURRENT = R.id.repeat_mode_current;
 	public final static int CHILD_MENU_BASE = 15; // this should be the last
 
 	public final static String[] HIDE_PLAYLISTS = new String[] { "Sony Ericsson play queue",

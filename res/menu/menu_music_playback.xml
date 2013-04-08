@@ -2,6 +2,39 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<item
+		android:id="@id/shuffle_mode"
+		android:showAsAction="always"
+		android:title="@string/shuffle_mode">
+		<menu>
+			<group android:checkableBehavior="single">
+				<item
+					android:id="@id/shuffle_mode_none"
+					android:title="@string/shuffle_mode_none"/>
+				<item
+					android:id="@id/shuffle_mode_all"
+					android:title="@string/shuffle_mode_all"/>
+			</group>
+		</menu>
+	</item>
+	<item
+		android:id="@id/repeat_mode"
+		android:showAsAction="always"
+		android:title="@string/repeat_mode">
+		<menu>
+			<group android:checkableBehavior="single">
+				<item
+					android:id="@id/repeat_mode_none"
+					android:title="@string/repeat_mode_none"/>
+				<item
+					android:id="@id/repeat_mode_all"
+					android:title="@string/repeat_mode_all"/>
+				<item
+					android:id="@id/repeat_mode_current"
+					android:title="@string/repeat_mode_current"/>
+			</group>
+		</menu>
+	</item>
+	<item
 		android:id="@id/add_to_favorite"
 		android:icon="@drawable/ic_menu_star"
 		android:showAsAction="always"

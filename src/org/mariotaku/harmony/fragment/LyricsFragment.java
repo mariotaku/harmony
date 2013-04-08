@@ -32,6 +32,7 @@ import android.view.ScaleGestureDetector.OnScaleGestureListener;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
@@ -49,47 +50,72 @@ import org.mariotaku.harmony.view.ExtendedFrameLayout;
 import org.mariotaku.harmony.view.ExtendedViewPager;
 import org.mariotaku.harmony.view.iface.IExtendedView.OnSizeChangedListener;
 import org.mariotaku.harmony.view.iface.IExtendedViewGroup.TouchInterceptor;
+import android.widget.AbsListView;
 
 public class LyricsFragment extends BaseListFragment implements Constants, OnLongClickListener, LoaderManager.LoaderCallbacks<Lyrics>,
-LyricsTimer.Callbacks, OnSizeChangedListener, TouchInterceptor, OnItemLongClickListener,
-OnScaleGestureListener {
+		LyricsTimer.Callbacks, OnSizeChangedListener, TouchInterceptor, OnItemLongClickListener,
+				OnScaleGestureListener, OnScrollListener {
+
+	private static final String EXTRA_LYRICS_PATH = "lyrics_path";
+	
+	private boolean mBusy;
 
 	private PreferencesEditor mPreferences;
  
 	private ScaleGestureDetector mScaleGestureDetector;
 
+	@Override
+	public void dispatchTouchEvent(ViewGroup view, MotionEvent event) {
+	}
+	
+	@Override
 	public boolean onScale(ScaleGestureDetector detector) {
 		final float size = mAdapter.getTextSize() * detector.getScaleFactor();
 		mAdapter.setTextSize(Utils.limit(size, TEXTSIZE_LYRICS_MIN, TEXTSIZE_LYRICS_MAX));
 		return true;
 	}
 
+	@Override
 	public boolean onScaleBegin(ScaleGestureDetector detector) {
 		mAdapter.setAutoWrapEnabled(false);
 		final View view = getActivity().findViewById(R.id.pager);
 		if (view instanceof ExtendedViewPager) {
 			((ExtendedViewPager) view).setPagingEnabled(false);
 		}
+		mBusy = true;
 		return true;
 	}
 
+	@Override
 	public void onScaleEnd(ScaleGestureDetector detector) {
 		mAdapter.setAutoWrapEnabled(true);
 		final View view = getActivity().findViewById(R.id.pager);
 		if (view instanceof ExtendedViewPager) {
 			((ExtendedViewPager) view).setPagingEnabled(true);
 		}
-	}
-	
-
-	public void dispatchTouchEvent(ViewGroup view, MotionEvent event) {
+		mBusy = false;
 	}
 
+	@Override
+	public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+	}
+
+	@Override
+	public void onScrollStateChanged(AbsListView view, int scrollState) {
+		mBusy = scrollState != SCROLL_STATE_IDLE;
+	}
+
+	@Override
 	public boolean onInterceptTouchEvent(ViewGroup view, MotionEvent event) {
-		//mScaleGestureDetector.onTouchEvent(event);
 		return event.getPointerCount() > 1;
 	}
 
+	@Override
+	public boolean onItemLongClick(AdapterView<?> view, View child, int position, long id) {
+		return true;
+	}
+
+	@Override
 	public boolean onTouchEvent(ViewGroup view, MotionEvent event) {
 		if (event.getPointerCount() > 1) {
 			mScaleGestureDetector.onTouchEvent(event);
@@ -97,22 +123,16 @@ OnScaleGestureListener {
 		return true;
 	}	
 
-	public boolean onItemLongClick(AdapterView<?> view, View child, int position, long id) {
-		return true;
-	}
-	
-
-	private View mHeaderView;
-	private int mViewHeight;
-
+	@Override
 	public void onSizeChanged(View view, int w, int h, int oldw, int oldh) {
-		// TODO: Implement this method
 		mHeaderView.setMinimumWidth(w);
 		mHeaderView.setMinimumHeight(h / 2);
 		mViewHeight = h;
 		mAdapter.setMaxWidth(w / 3 * 2);
 	}
 	
+	private View mHeaderView;
+	private int mViewHeight;
 
 	private LyricsTimer mLyricsTimer;
 	private LyricsAdapter mAdapter;
@@ -125,50 +145,50 @@ OnScaleGestureListener {
 	
 	private boolean mLoaderInitialized;
 
+	@Override
 	public void onLyricsChanged(Lyrics.Line current) {
 		if (current == null) return;
 		final int position = current.getIndex();
-		final View item_view = mAdapter.getView(position, null, null);
-		item_view.measure(0, 0);
-		final int h = item_view.getMeasuredHeight();
-		mListView.smoothScrollToPositionFromTop(position + mListView.getHeaderViewsCount(), mViewHeight / 2 - h / 2);
-		mListView.setOnItemLongClickListener(this);
+		if (!mBusy) {
+			final View item_view = mAdapter.getView(position, null, null);
+			item_view.measure(0, 0);
+			final int item_height = item_view.getMeasuredHeight();
+			final int offset = mViewHeight / 2 - item_height / 2;
+			mListView.smoothScrollToPositionFromTop(position + mListView.getHeaderViewsCount(), offset);
+		}
 		mAdapter.setCurrentPosition(position);
 	}
 
+	@Override
 	public boolean isPlaying() {
 		return mService != null && mService.isPlaying();
 	}
 
+	@Override
 	public long getPosition() {
 		if (mService == null) return -1;
 		return mService.getPosition();
 	}
 	
-
-	private static final String EXTRA_LYRICS_PATH = "lyrics_path";
-			
+	@Override
 	public Loader<Lyrics> onCreateLoader(int id, Bundle args) {
 		setListShown(false);
 		return new LyricsLoader(getActivity(), args.getString(EXTRA_LYRICS_PATH));
 	}
 
+	@Override
 	public void onLoadFinished(Loader<Lyrics> loader, Lyrics data) {
 		mLyrics = data;
-		//mLyricsScrollView.setTextContent(data != null ? data.getAll() : null);
 		mAdapter.loadLyrics(data);
 		mLyricsTimer.loadLyrics(data);
 		setListShown(true);		
 	}
 
-	public void onLoaderReset(Loader<Lyrics> id) {
-		// TODO: Implement this method
+	@Override
+	public void onLoaderReset(final Loader<Lyrics> loader) {
 	}
 
-	// for lyrics displaying
-	//private TextScrollView mLyricsScrollView;
-	//private TextView mLyricsInfoMessage;
-
+	@Override
 	protected void onSeekChanged() {
 		mLyricsTimer.resume();
 	}
@@ -176,8 +196,6 @@ OnScaleGestureListener {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		//mLyricsScrollView.setContentGravity(Gravity.CENTER_HORIZONTAL);
-		//mLyricsInfoMessage.setOnLongClickListener(this);
 		mPreferences = new PreferencesEditor(getActivity());
 		mHeaderView = new View(getActivity());
 		mScaleGestureDetector = new ScaleGestureDetector(getActivity(), this);
@@ -185,6 +203,8 @@ OnScaleGestureListener {
 		mListView.addHeaderView(mHeaderView, null, false);
 		mListView.addFooterView(mHeaderView, null, false);
 		mListView.setDivider(null);
+		mListView.setOnItemLongClickListener(this);
+		mListView.setOnScrollListener(this);
 		mContainerView.setOnSizeChangedListener(this);
 		mContainerView.setTouchInterceptor(this);
 		mAdapter = new LyricsAdapter(getActivity());
@@ -236,11 +256,13 @@ OnScaleGestureListener {
 	protected void onServiceDisconnected() {
 		mService = null;
 	}
-	
+
+	@Override
 	protected void onCurrentMediaChanged() {
 		loadLyrics();
 	}
-	
+
+	@Override
 	protected void onPlayStateChanged() {
 		if (isPlaying()) {
 			mLyricsTimer.resume();

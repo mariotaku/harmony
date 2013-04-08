@@ -26,5 +26,12 @@
 	<item name="add_to_favorite" type="id"/>
 	<item name="play_pause" type="id"/>
 	<item name="next" type="id"/>
+	<item name="shuffle_mode" type="id"/>
+	<item name="shuffle_mode_all" type="id"/>
+	<item name="shuffle_mode_none" type="id"/>
+	<item name="repeat_mode" type="id"/>
+	<item name="repeat_mode_none" type="id"/>
+	<item name="repeat_mode_all" type="id"/>
+	<item name="repeat_mode_current" type="id"/>
 
 </resources>

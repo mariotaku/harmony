@@ -149,17 +149,24 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		}
 	}
 
-	public void setShuffleMode(int shufflemode) {
-		// TODO: Implement this method
+	public void setShuffleMode(int mode) {
+		try {
+			mService.setShuffleMode(mode);
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public int getShuffleMode() {
-		// TODO: Implement this method
-		return 0;
+		try {
+			return mService.getShuffleMode();
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
+		return -1;
 	}
 
 	public int removeTracks(int first, int last) {
-		// TODO: Implement this method
 		try {
 			return mService.removeTracks(first, last);
 		} catch (final RemoteException e) {
@@ -169,7 +176,6 @@ public class ServiceWrapper implements IMusicPlaybackService {
 	}
 
 	public int removeTrack(long id) {
-		// TODO: Implement this method
 		try {
 			return mService.removeTrack(id);
 		} catch (final RemoteException e) {
@@ -178,13 +184,21 @@ public class ServiceWrapper implements IMusicPlaybackService {
 		return 0;
 	}
 
-	public void setRepeatMode(int repeatmode) {
-		// TODO: Implement this method
+	public void setRepeatMode(final int mode) {
+		try {
+			mService.setRepeatMode(mode);
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
 	}
 
 	public int getRepeatMode() {
-		// TODO: Implement this method
-		return 0;
+		try {
+			return mService.getRepeatMode();
+		} catch (final RemoteException e) {
+			Log.w(LOGTAG, e);
+		}
+		return -1;
 	}
 
 	public void startSleepTimer(long millisecond, boolean gentle) {

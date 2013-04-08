@@ -23,7 +23,6 @@
 	<string name="durationformatlong" translatable="false"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
 	<string name="goto_start">Library</string>
 	<string name="goto_playback">Playback</string>
-	<string name="shuffle_all">Shuffle all</string>
 	<string name="play_all">Play all</string>
 	<string name="delete_artist_desc">All songs by <xliff:g id="artist">%s</xliff:g> will be permanently deleted from your device.</string>
 	<string name="delete_album_desc">The entire album \"<xliff:g id="album">%s</xliff:g>\" will be permanently deleted from your device.</string>
@@ -227,5 +226,13 @@
 	<string name="media_storage_error_shared">Storage device is shared via USB storage.</string>
 	<string name="media_storage_error_unmounted">Storage device unmounted.</string>
 	<string name="media_storage_error_unknown">Unknown error.</string>
+	<string name="off">Off</string>
+	<string name="shuffle_mode">Shuffle mode</string>
+	<string name="shuffle_mode_none">Shuffle none</string>
+	<string name="shuffle_mode_all">Shuffle all</string>
+	<string name="repeat_mode">Repeat mode</string>
+	<string name="repeat_mode_none">Repeat none</string>
+	<string name="repeat_mode_all">Repeat all</string>
+	<string name="repeat_mode_current">Repeat current</string>
 
 </resources>

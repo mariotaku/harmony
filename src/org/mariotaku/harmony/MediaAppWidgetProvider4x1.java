@@ -129,7 +129,7 @@ public class MediaAppWidgetProvider4x1 extends AppWidgetProvider implements Cons
 				R.layout.album_appwidget4x1);
 
 		if (BROADCAST_MEDIA_CHANGED.equals(intent.getAction())
-				|| BROADCAST_PLAYSTATE_CHANGED.equals(intent.getAction())) {
+				|| BROADCAST_PLAY_STATE_CHANGED.equals(intent.getAction())) {
 			mTrackName = intent.getStringExtra(BROADCAST_KEY_TRACK);
 			String artist = intent.getStringExtra(BROADCAST_KEY_ARTIST);
 			String album = intent.getStringExtra(BROADCAST_KEY_ALBUM);

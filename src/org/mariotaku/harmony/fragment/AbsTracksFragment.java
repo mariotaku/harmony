@@ -11,6 +11,7 @@ import com.mobeta.android.dslv.DragSortListView;
 import org.mariotaku.harmony.adapter.TracksAdapter;
 import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.ServiceWrapper;
+import android.widget.ListView;
 
 public abstract class AbsTracksFragment extends BaseListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -33,6 +34,8 @@ public abstract class AbsTracksFragment extends BaseListFragment implements Load
 		mResolver = getActivity().getContentResolver();
 		mAdapter = new TracksAdapter(getActivity(), this instanceof DragSortListView.OnDragListener);
 		setListAdapter(mAdapter);
+		final ListView listView = getListView();
+		listView.setFastScrollEnabled(true);
 		loadData();
 	}
 

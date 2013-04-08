@@ -121,7 +121,7 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 	@Override
 	public void onPageSelected(int position) {
 		mActionBar.setSelectedNavigationItem(position);
-		mPrefs.setIntState(STATE_KEY_CURRENTTAB, position);
+		mPrefs.setIntState(STATE_KEY_PAGE_POSITION_BROWSER, position);
 
 	}
 
@@ -146,15 +146,14 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 
 	private void configureTabs(Bundle args) {
 
-		mTabsAdapter.addFragment(new ArtistsFragment(), getString(R.string.artists).toUpperCase());
-		mTabsAdapter.addFragment(new AlbumsFragment(), getString(R.string.albums).toUpperCase());
-		mTabsAdapter.addFragment(new TracksFragment(), getString(R.string.tracks).toUpperCase());
-		//mTabsAdapter.addFragment(new PlaylistFragment(), getString(R.string.playlists)
-		//		.toUpperCase());
-		mTabsAdapter.addFragment(new GenresFragment(), getString(R.string.genres).toUpperCase());
+		mTabsAdapter.addFragment(new ArtistsFragment(), getString(R.string.artists));
+		mTabsAdapter.addFragment(new AlbumsFragment(), getString(R.string.albums));
+		mTabsAdapter.addFragment(new TracksFragment(), getString(R.string.tracks));
+		//mTabsAdapter.addFragment(new PlaylistFragment(), getString(R.string.playlists));
+		mTabsAdapter.addFragment(new GenresFragment(), getString(R.string.genres));
 		mViewPager.setOffscreenPageLimit(3);
 		mViewPager.setAdapter(mTabsAdapter);
-		int currenttab = mPrefs.getIntState(STATE_KEY_CURRENTTAB, 0);
+		int currenttab = mPrefs.getIntState(STATE_KEY_PAGE_POSITION_BROWSER, 0);
 		mActionBar.setSelectedNavigationItem(currenttab);
 	}
 	

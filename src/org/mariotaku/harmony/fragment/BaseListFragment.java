@@ -25,7 +25,7 @@ public class BaseListFragment extends ListFragment implements Constants, Service
 			final String action = intent.getAction();
 			if (BROADCAST_MEDIA_CHANGED.equals(action)) {
 				onCurrentMediaChanged();
-			} else if (BROADCAST_PLAYSTATE_CHANGED.equals(action)) {
+			} else if (BROADCAST_PLAY_STATE_CHANGED.equals(action)) {
 				onPlayStateChanged();
 			} else if (BROADCAST_SEEK_CHANGED.equals(action)) {
 				onSeekChanged();	
@@ -72,7 +72,7 @@ public class BaseListFragment extends ListFragment implements Constants, Service
 		final Activity activity = getActivity();
 		mToken = ServiceUtils.bindToService(activity, this);
 		final IntentFilter filter = new IntentFilter();
-		filter.addAction(BROADCAST_PLAYSTATE_CHANGED);
+		filter.addAction(BROADCAST_PLAY_STATE_CHANGED);
 		filter.addAction(BROADCAST_MEDIA_CHANGED);
 		filter.addAction(BROADCAST_SEEK_CHANGED);
 		activity.registerReceiver(mMediaStatusReceiver, filter);

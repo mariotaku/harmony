@@ -144,7 +144,7 @@ public class MediaAppWidgetProvider4x2 extends AppWidgetProvider implements Cons
 				R.layout.album_appwidget4x2);
 
 		if (BROADCAST_MEDIA_CHANGED.equals(intent.getAction())
-				|| BROADCAST_PLAYSTATE_CHANGED.equals(intent.getAction())) {
+				|| BROADCAST_PLAY_STATE_CHANGED.equals(intent.getAction())) {
 			mTrackName = intent.getStringExtra(BROADCAST_KEY_TRACK);
 			String artist = intent.getStringExtra(BROADCAST_KEY_ARTIST);
 			String album = intent.getStringExtra(BROADCAST_KEY_ALBUM);
@@ -168,10 +168,10 @@ public class MediaAppWidgetProvider4x2 extends AppWidgetProvider implements Cons
 		} else if (BROADCAST_NEW_LYRICS_LOADED.equals(intent.getAction())) {
 			mLyrics = intent.getStringArrayExtra(BROADCAST_KEY_LYRICS);
 			mLyricsStat = intent.getIntExtra(BROADCAST_KEY_LYRICS_STATUS, LYRICS_STATUS_INVALID);
-		} else if (BROADCAST_REPEATMODE_CHANGED.equals(intent.getAction())) {
-			mRepeatMode = intent.getIntExtra(BROADCAST_KEY_REPEATMODE, REPEAT_NONE);
-		} else if (BROADCAST_SHUFFLEMODE_CHANGED.equals(intent.getAction())) {
-			mShuffleMode = intent.getIntExtra(BROADCAST_KEY_SHUFFLEMODE, SHUFFLE_NONE);
+		} else if (BROADCAST_REPEAT_MODE_CHANGED.equals(intent.getAction())) {
+			mRepeatMode = intent.getIntExtra(BROADCAST_KEY_REPEATMODE, REPEAT_MODE_NONE);
+		} else if (BROADCAST_SHUFFLE_MODE_CHANGED.equals(intent.getAction())) {
+			mShuffleMode = intent.getIntExtra(BROADCAST_KEY_SHUFFLEMODE, SHUFFLE_MODE_NONE);
 		}
 
 		CharSequence errorState = null;
@@ -231,10 +231,10 @@ public class MediaAppWidgetProvider4x2 extends AppWidgetProvider implements Cons
 
 		// Set correct drawable for repeat state
 		switch (mRepeatMode) {
-			case REPEAT_ALL:
+			case REPEAT_MODE_ALL:
 				views.setImageViewResource(R.id.control_repeat, R.drawable.ic_mp_repeat_all_btn);
 				break;
-			case REPEAT_CURRENT:
+			case REPEAT_MODE_CURRENT:
 				views.setImageViewResource(R.id.control_repeat, R.drawable.ic_mp_repeat_once_btn);
 				break;
 			default:
@@ -244,7 +244,7 @@ public class MediaAppWidgetProvider4x2 extends AppWidgetProvider implements Cons
 
 		// Set correct drawable for shuffle state
 		switch (mShuffleMode) {
-			case SHUFFLE_NORMAL:
+			case SHUFFLE_MODE_ALL:
 				views.setImageViewResource(R.id.control_shuffle, R.drawable.ic_mp_shuffle_on_btn);
 				break;
 			default:

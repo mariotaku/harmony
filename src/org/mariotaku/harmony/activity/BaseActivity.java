@@ -25,10 +25,14 @@ public class BaseActivity extends Activity implements Constants, ServiceConnecti
 			final String action = intent.getAction();
 			if (BROADCAST_MEDIA_CHANGED.equals(action)) {
 				onCurrentMediaChanged();
-			} else if (BROADCAST_PLAYSTATE_CHANGED.equals(action)) {
+			} else if (BROADCAST_PLAY_STATE_CHANGED.equals(action)) {
 				onPlayStateChanged();
 			} else if (BROADCAST_SEEK_CHANGED.equals(action)) {
 				onSeekChanged();
+			} else if (BROADCAST_SHUFFLE_MODE_CHANGED.equals(action)) {
+				onShuffleModeChanged();
+			} else if (BROADCAST_REPEAT_MODE_CHANGED.equals(action)) {
+				onRepeatModeChanged();
 			}
 		}
 
@@ -54,6 +58,10 @@ public class BaseActivity extends Activity implements Constants, ServiceConnecti
 	protected void onPlayStateChanged() {
 		
 	}
+
+	protected void onRepeatModeChanged() {
+
+	}
 	
 	protected void onSeekChanged() {
 		
@@ -66,13 +74,20 @@ public class BaseActivity extends Activity implements Constants, ServiceConnecti
 	protected void onServiceDisconnected() {
 
 	}
+
+	protected void onShuffleModeChanged() {
+
+	}
 	
 	protected void onStart() {
 		super.onStart();
 		mToken = ServiceUtils.bindToService(this, this);
 		final IntentFilter filter = new IntentFilter();
-		filter.addAction(BROADCAST_PLAYSTATE_CHANGED);
+		filter.addAction(BROADCAST_PLAY_STATE_CHANGED);
 		filter.addAction(BROADCAST_MEDIA_CHANGED);
+		filter.addAction(BROADCAST_SEEK_CHANGED);
+		filter.addAction(BROADCAST_SHUFFLE_MODE_CHANGED);
+		filter.addAction(BROADCAST_REPEAT_MODE_CHANGED);
 		registerReceiver(mMediaStatusReceiver, filter);
 	}
 	

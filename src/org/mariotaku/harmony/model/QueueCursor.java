@@ -4,7 +4,7 @@ import android.content.Context;
 import android.database.AbstractCursor;
 import android.database.Cursor;
 import android.os.RemoteException;
-import android.provider.MediaStore;
+import android.provider.MediaStore.*;
 import android.util.Log;
 import java.util.Arrays;
 import org.mariotaku.harmony.app.TrackBrowserActivity;
@@ -12,18 +12,17 @@ import org.mariotaku.harmony.util.MusicUtils;
 import org.mariotaku.harmony.util.ServiceWrapper;
 import android.content.ContentResolver;
 
-public class NowPlayingCursor extends AbstractCursor {
+public class QueueCursor extends AbstractCursor {
 
 	private String [] mCols;
-	private Cursor mCursor;     // updated in onMove
-	private int mSize;          // size of the queue
-	private long[] mNowPlaying;
-	private long[] mCursorIdxs;
+	private Cursor mCursor;
+	private int mSize;
 	private int mCurPos;
+	private long[] mQueue, mIndices;
 	private ServiceWrapper mService;
 	private ContentResolver mResolver;
 
-	public NowPlayingCursor(final Context context, ServiceWrapper service, String [] cols) {
+	public QueueCursor(final Context context, ServiceWrapper service, String [] cols) {
 		mCols = cols;
 		mService  = service;
 		mResolver = context.getContentResolver();
@@ -32,37 +31,37 @@ public class NowPlayingCursor extends AbstractCursor {
 
 	private void makeNowPlayingCursor() {
 		mCursor = null;
-		mNowPlaying = mService.getQueue();
-		if (mNowPlaying == null) {
-			mNowPlaying = new long[0];
+		mQueue = mService.getQueue();
+		if (mQueue == null) {
+			mQueue = new long[0];
 		}
-		mSize = mNowPlaying.length;
+		mSize = mQueue.length;
 		if (mSize == 0) {
 			return;
 		}
 
 		StringBuilder where = new StringBuilder();
-		where.append(MediaStore.Audio.Media._ID + " IN (");
+		where.append(Audio.Media._ID + " IN (");
 		for (int i = 0; i < mSize; i++) {
-			where.append(mNowPlaying[i]);
+			where.append(mQueue[i]);
 			if (i < mSize - 1) {
 				where.append(",");
 			}
 		}
 		where.append(")");
-		mCursor = mResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mCols, where.toString(), null, MediaStore.Audio.Media._ID);
+		mCursor = mResolver.query(Audio.Media.EXTERNAL_CONTENT_URI, mCols, where.toString(), null, Audio.Media._ID);
 
 		if (mCursor == null) {
 			mSize = 0;
 			return;
 		}
 
-		int size = mCursor.getCount();
-		mCursorIdxs = new long[size];
+		final int size = mCursor.getCount();
+		mIndices = new long[size];
 		mCursor.moveToFirst();
-		int colidx = mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
+		final int colidx = mCursor.getColumnIndexOrThrow(Audio.Media._ID);
 		for (int i = 0; i < size; i++) {
-			mCursorIdxs[i] = mCursor.getLong(colidx);
+			mIndices[i] = mCursor.getLong(colidx);
 			mCursor.moveToNext();
 		}
 		mCursor.moveToFirst();
@@ -73,24 +72,24 @@ public class NowPlayingCursor extends AbstractCursor {
 		// in the database, and remove those that aren't. This way we
 		// don't get any blank items in the list.
 		int removed = 0;
-		for (int i = mNowPlaying.length - 1; i >= 0; i--) {
-			long trackid = mNowPlaying[i];
-			int crsridx = Arrays.binarySearch(mCursorIdxs, trackid);
+		for (int i = mQueue.length - 1; i >= 0; i--) {
+			long trackid = mQueue[i];
+			int crsridx = Arrays.binarySearch(mIndices, trackid);
 			if (crsridx < 0) {
 				//Log.i("@@@@@", "item no longer exists in db: " + trackid);
 				removed += mService.removeTrack(trackid);
 			}
 		}
 		if (removed > 0) {
-			mNowPlaying = mService.getQueue();
-			mSize = mNowPlaying.length;
+			mQueue = mService.getQueue();
+			mSize = mQueue.length;
 			if (mSize == 0) {
-				mCursorIdxs = null;
+				mIndices = null;
 				return;
 			}
 		}
-		if (mNowPlaying == null) {
-			mNowPlaying = new long[0];
+		if (mQueue == null) {
+			mQueue = new long[0];
 		}
 	}
 
@@ -104,7 +103,7 @@ public class NowPlayingCursor extends AbstractCursor {
 		if (oldPosition == newPosition)
 			return true;
 
-		if (mNowPlaying == null || mCursorIdxs == null || newPosition >= mNowPlaying.length) {
+		if (mQueue == null || mIndices == null || newPosition >= mQueue.length) {
 			return false;
 		}
 
@@ -112,8 +111,8 @@ public class NowPlayingCursor extends AbstractCursor {
 		// in queue-order, so we need to figure out where in the cursor we
 		// should be.
 
-		long newid = mNowPlaying[newPosition];
-		int crsridx = Arrays.binarySearch(mCursorIdxs, newid);
+		long newid = mQueue[newPosition];
+		int crsridx = Arrays.binarySearch(mIndices, newid);
 		mCursor.moveToPosition(crsridx);
 		mCurPos = newPosition;
 
@@ -127,7 +126,7 @@ public class NowPlayingCursor extends AbstractCursor {
 		int i = which;
 		mSize--;
 		while (i < mSize) {
-			mNowPlaying[i] = mNowPlaying[i + 1];
+			mQueue[i] = mQueue[i + 1];
 			i++;
 		}
 		onMove(-1, mCurPos);
@@ -136,7 +135,7 @@ public class NowPlayingCursor extends AbstractCursor {
 
 	public void moveItem(int from, int to) {
 		mService.moveQueueItem(from, to);
-		mNowPlaying = mService.getQueue();
+		mQueue = mService.getQueue();
 		onMove(-1, mCurPos); // update the underlying cursor
 	}
 
