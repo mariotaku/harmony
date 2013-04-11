@@ -21,16 +21,16 @@ public class PlayShortcut extends BaseActivity implements Constants {
 		if (INTENT_PLAY_SHORTCUT.equals(action) && playlist_id != PLAYLIST_UNKNOWN) {
 			switch ((int) playlist_id) {
 				case (int) PLAYLIST_ALL_SONGS: {
-					MusicUtils.playAll(this);
+					MusicUtils.playAll(this, service);
 					break;
 				}
 				case (int) PLAYLIST_RECENTLY_ADDED: {
-					MusicUtils.playRecentlyAdded(this);
+					MusicUtils.playRecentlyAdded(this, service);
 					break;
 				}
 				default: {
 					if (playlist_id >= 0) {
-						MusicUtils.playPlaylist(this, playlist_id);
+						MusicUtils.playPlaylist(this, service, playlist_id);
 					}
 					break;
 				}

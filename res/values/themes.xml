@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-	<style name="Theme" parent="android:Theme.Holo.Wallpaper">
+	<style name="Theme" parent="android:Theme.Holo">
 		<item name="android:windowAnimationStyle">@android:style/Animation.Activity</item>
-		<item name="android:windowBackground">@drawable/default_background</item>
+		<!--<item name="android:windowBackground">@drawable/default_background</item>-->
 	</style>
 
 	<style name="Theme.MusicBrowser"/>
 
 	<style name="Theme.MusicPlayback">
-		<item name="android:windowBackground">@drawable/music_playback_background</item>
+		<!--<item name="android:windowBackground">@drawable/music_playback_background</item>-->
 		<item name="android:windowAnimationStyle">@style/Animation.MusicPlayback</item>
 		<item name="android:windowActionBarOverlay">true</item>
 		<item name="android:actionBarStyle">@style/Widget.ActionBar.MusicPlayback</item>

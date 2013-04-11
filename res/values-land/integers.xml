@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+	<integer name="album_grid_rows">2</integer>
+</resources>

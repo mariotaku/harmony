@@ -42,7 +42,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import org.mariotaku.harmony.app.TrackBrowserActivity;
+import org.mariotaku.harmony.activity.TracksBrowserActivity;
 
 public class PlaylistsFragment extends ListFragment implements LoaderCallbacks<Cursor>, Constants {
 
@@ -140,7 +140,7 @@ public class PlaylistsFragment extends ListFragment implements LoaderCallbacks<C
 		bundle.putLong(MediaStore.Audio.Playlists._ID, playlist_id);
 
 
-			Intent intent = new Intent(getActivity(), TrackBrowserActivity.class);
+			Intent intent = new Intent(getActivity(), TracksBrowserActivity.class);
 			intent.putExtras(bundle);
 			startActivity(intent);
 	}

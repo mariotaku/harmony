@@ -49,7 +49,6 @@ public class AlbumsAdapter extends SimpleCursorAdapter {
 		} else {
 			viewholder.album_art.setImageResource(R.drawable.ic_mp_albumart_unknown);
 		}
-
 	}
 
 	@Override

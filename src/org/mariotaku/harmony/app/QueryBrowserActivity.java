@@ -112,7 +112,7 @@ public class QueryBrowserActivity extends BaseActivity implements Constants, Tex
 
 		Intent intent;
 		switch (item.getItemId()) {
-			case GOTO_HOME:
+			case MENU_HOME:
 				intent = new Intent(INTENT_MUSIC_BROWSER);
 				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(intent);

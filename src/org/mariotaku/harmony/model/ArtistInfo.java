@@ -12,11 +12,11 @@ public class ArtistInfo {
 	private static final String[] ARTIST_INFO_COLUMNS = new String[] { Artists._ID, Artists.ARTIST };
 
 	public final String artist;
-	public final long artist_id;
+	public final long id;
 
 	public ArtistInfo(final Cursor cursor) {
 		artist = cursor.getString(cursor.getColumnIndex(Artists.ARTIST));
-		artist_id = cursor.getLong(cursor.getColumnIndex(Artists._ID));
+		id = cursor.getLong(cursor.getColumnIndex(Artists._ID));
 	}
 
 	public static ArtistInfo getArtistInfo(final Context context, final TrackInfo track) {
@@ -37,7 +37,7 @@ public class ArtistInfo {
 
 	@Override
 	public String toString() {
-		return "ArtistInfo{artist=" + artist + ",artist_id=" + artist_id + "}";
+		return "ArtistInfo{artist=" + artist + ",id=" + id + "}";
 	}
 
 	public static boolean isUnknownArtist(final ArtistInfo artist) {

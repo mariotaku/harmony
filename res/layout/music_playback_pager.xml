@@ -7,10 +7,14 @@
 		android:layout_height="match_parent"
 		android:scaleType="centerCrop"/>
 
-	<org.mariotaku.harmony.view.ExtendedViewPager
+	<org.mariotaku.harmony.view.ExtendedViewPager3D
 		android:id="@+id/pager"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"/>
 		
+	<View
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:background="@drawable/pager_shadow"/>
 </merge>
 

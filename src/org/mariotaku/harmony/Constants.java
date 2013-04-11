@@ -23,6 +23,11 @@ package org.mariotaku.harmony;
 public interface Constants {
 
  	public static final String CACHE_DIR_NAME_ALBUMART = "albumart";
+
+	public static final String SCHEME_HARMONY_TRACKS = "harmony.tracks";
+	public static final String AUTHORITY_ALBUM = "album";
+	public static final String AUTHORITY_ARTIST = "artist";
+	public static final String AUTHORITY_GENRE = "genre";
  
 	public final static int ACTION_NOW = 1;
 	public final static int ACTION_NEXT = 2;
@@ -195,7 +200,9 @@ public interface Constants {
 	public final static String INTENT_KEY_CONTENT = "content";
 	public final static String INTENT_KEY_ITEMS = "items";
 	public final static String INTENT_KEY_ALBUM = "album";
+	public final static String INTENT_KEY_ALBUM_IDS = "album_ids";
 	public final static String INTENT_KEY_ARTIST = "artist";
+	public final static String INTENT_KEY_ARTIST_IDS = "artist_ids";
 	public final static String INTENT_KEY_TRACK = "track";
 	public final static String INTENT_KEY_PLAYLIST = "playlist";
 	public final static String INTENT_KEY_PATH = "path";
@@ -203,6 +210,7 @@ public interface Constants {
 	public final static String INTENT_KEY_RENAME = "rename";
 	public final static String INTENT_KEY_DEFAULT_NAME = "default_name";
 	public final static String INTENT_KEY_FILTER = "filter";
+	public static final String EXTRA_GROUP_POSITION = "group_position";
 
 	public final static String INTENT_KEY_TYPE = "type";
 	public final static String INTENT_KEY_ACTION = "action";
@@ -255,7 +263,7 @@ public interface Constants {
 	public final static int MENU_NEW_PLAYLIST = R.id.new_playlist;
 	public final static int PLAY_SELECTION = R.id.play_selection;
 	public final static int GOTO_PLAYBACK = R.id.goto_playback;
-	public final static int GOTO_HOME = android.R.id.home;
+	public final static int MENU_HOME = android.R.id.home;
 	public final static int ADD_TO_FAVORITES = R.id.add_to_favorite;
 	public final static int PARTY_SHUFFLE = R.id.party_shuffle;
 	public final static int SHUFFLE_ALL = R.id.shuffle_all;

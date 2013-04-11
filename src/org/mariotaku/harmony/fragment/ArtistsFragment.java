@@ -38,11 +38,15 @@ import android.widget.Toast;
 import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.adapter.ArtistsAdapter;
-import org.mariotaku.harmony.app.TrackBrowserActivity;
+import org.mariotaku.harmony.activity.TracksBrowserActivity;
 import org.mariotaku.harmony.model.AlbumInfo;
 import org.mariotaku.harmony.model.ArtistInfo;
 import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.ServiceWrapper;
+import android.content.ContentResolver;
+import android.provider.BaseColumns;
+import org.mariotaku.harmony.util.ArrayUtils;
+import org.mariotaku.harmony.util.Utils;
 
 public class ArtistsFragment extends BaseFragment implements Constants, LoaderManager.LoaderCallbacks<Cursor>, ExpandableListView.OnChildClickListener,
 		ArtistsAdapter.OnChildLongClickListener, AdapterView.OnItemLongClickListener {
@@ -50,10 +54,12 @@ public class ArtistsFragment extends BaseFragment implements Constants, LoaderMa
 	private ArtistsAdapter mAdapter;
 	private ExpandableListView mListView;
 	private ServiceWrapper mService;
+	private ContentResolver mResolver;
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		mResolver = getActivity().getContentResolver();
 		mAdapter = new ArtistsAdapter(getActivity(), mListView, this, this);
 		mListView.setAdapter(mAdapter);
 		mListView.setOnItemLongClickListener(this);
@@ -62,18 +68,30 @@ public class ArtistsFragment extends BaseFragment implements Constants, LoaderMa
 	
 	@Override
 	public boolean onChildClick(ExpandableListView listView, View child, int groupPos, int childPos, long id) {
-		final Bundle bundle = new Bundle();
-		bundle.putString(INTENT_KEY_TYPE, MediaStore.Audio.Albums.CONTENT_TYPE);
-		bundle.putLong(MediaStore.Audio.Albums._ID, id);
-		final Intent intent = new Intent(getActivity(), TrackBrowserActivity.class);
-		intent.putExtras(bundle);
+		final Uri.Builder builder = new Uri.Builder();
+		builder.scheme(SCHEME_HARMONY_TRACKS);
+		if (id < 0) {
+			final ArtistInfo artist = mAdapter.getArtistInfo(groupPos);
+			if (artist == null) return false;
+			final Uri uri = Audio.Artists.Albums.getContentUri(EXTERNAL_VOLUME, artist.id);
+			final Cursor c = mResolver.query(uri, new String[] { BaseColumns._ID }, null, null, null);
+			builder.authority(AUTHORITY_ALBUM);
+			builder.appendPath(ArrayUtils.toString(Utils.getCursorIds(c), ',', false));
+			if (c != null) {
+				c.close();
+			}
+		} else {
+			builder.authority(AUTHORITY_ALBUM);
+			builder.appendPath(String.valueOf(id));
+		}
+		final Intent intent = new Intent(Intent.ACTION_VIEW, builder.build());
+		intent.setClass(getActivity(), TracksBrowserActivity.class);
 		startActivity(intent);
 		return true;
 	}
 
 	@Override
 	public boolean onChildLongClick(final ExpandableListView listView, final View view, final int groupPos, final int childPos, final long id) {
-		// TODO: Implement this method
 		final AlbumInfo album = mAdapter.getAlbumInfo(groupPos, childPos);
 		Toast.makeText(getActivity(), "album " + album + " selected", Toast.LENGTH_SHORT).show();
 		return true;
@@ -90,8 +108,8 @@ public class ArtistsFragment extends BaseFragment implements Constants, LoaderMa
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		final View view = inflater.inflate(R.layout.artist_album_browser, container, false);
-		mListView = (ExpandableListView) view.findViewById(R.id.artist_expandable_list);
+		final View view = inflater.inflate(R.layout.artists_browser, container, false);
+		mListView = (ExpandableListView) view.findViewById(android.R.id.list);
 		return view;
 	}
 

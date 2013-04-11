@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.mobeta.android.dslv.DragSortListView xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:dslv="http://schemas.android.com/apk/res-auto"
+	android:id="@android:id/list"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:fastScrollEnabled="true"
+	android:padding="@dimen/music_browser_page_padding"
+	dslv:dragEnabled="true"
+	dslv:dragHandleId="@+id/drag_handle"
+	dslv:collapsedHeight="2dp"
+	dslv:dragScrollStart="0.33"
+	dslv:maxDragScrollSpeed="0.5"
+	dslv:floatAlpha="0.6"
+	dslv:slideShuffleSpeed="0.3"
+	dslv:sortEnabled="true"
+	dslv:trackDragSort="true"
+	dslv:useDefaultController="true"/>
+

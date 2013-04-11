@@ -40,7 +40,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
-import org.mariotaku.harmony.app.TrackBrowserActivity;
+import org.mariotaku.harmony.activity.TracksBrowserActivity;
 
 public class GenresFragment extends BaseListFragment implements LoaderCallbacks<Cursor>, Constants {
 
@@ -97,7 +97,7 @@ public class GenresFragment extends BaseListFragment implements LoaderCallbacks<
 		bundle.putLong(Audio.Genres._ID, id);
 
 
-			Intent intent = new Intent(getActivity(), TrackBrowserActivity.class);
+			Intent intent = new Intent(getActivity(), TracksBrowserActivity.class);
 			intent.putExtras(bundle);
 			startActivity(intent);
 	}

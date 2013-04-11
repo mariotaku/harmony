@@ -20,19 +20,6 @@ public class QueueFragment extends EditableTracksFragment {
 	public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
 		return new QueueLoader(getActivity(), mService, AUDIO_COLUMNS);
 	}
-	
-	@Override
-	public void onLoadFinished(final Loader<Cursor> loader, final Cursor cursor) {
-		super.onLoadFinished(loader, cursor);
-		mCursor = cursor instanceof QueueCursor ? (QueueCursor) cursor : null;
-	}
-	
-
-	@Override
-	public void onLoaderReset(final Loader<Cursor> loader) {
-		mCursor = null;
-		super.onLoaderReset(loader);
-	}
 
 	@Override
 	public void onDrag(int from, int to) {
@@ -43,6 +30,24 @@ public class QueueFragment extends EditableTracksFragment {
 		if (mService == null || mCursor == null || mCursor.isClosed()) return;
 		mCursor.moveItem(from, to);
 		getListAdapter().notifyDataSetChanged();
+	}
+
+	@Override
+	public void onLoadFinished(final Loader<Cursor> loader, final Cursor cursor) {
+		super.onLoadFinished(loader, cursor);
+		mCursor = cursor instanceof QueueCursor ? (QueueCursor) cursor : null;
+	}
+
+	@Override
+	public void onLoaderReset(final Loader<Cursor> loader) {
+		mCursor = null;
+		super.onLoaderReset(loader);
+	}
+
+	@Override
+	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
+		if (mService == null) return;
+		mService.setQueuePosition(position);
 	}
 
 	@Override
@@ -69,12 +74,5 @@ public class QueueFragment extends EditableTracksFragment {
 	protected void loadData() {
 		if (mService == null) return;
 		super.loadData();
-	}
-	
-
-	@Override
-	public void onListItemClick(final ListView l, final View v, final int position, final long id) {
-		if (mService == null) return;
-		mService.setQueuePosition(position);
 	}
 }

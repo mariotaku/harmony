@@ -7,9 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.media.AudioManager;
+import android.os.Bundle;
 import android.os.IBinder;
 import org.mariotaku.harmony.Constants;
-import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.ServiceUtils;
 import org.mariotaku.harmony.util.ServiceWrapper;
 
@@ -77,6 +78,11 @@ public class BaseActivity extends Activity implements Constants, ServiceConnecti
 
 	protected void onShuffleModeChanged() {
 
+	}
+	
+	protected void onCreate(final Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 	}
 	
 	protected void onStart() {

@@ -7,7 +7,7 @@ import android.os.RemoteException;
 import android.provider.MediaStore.*;
 import android.util.Log;
 import java.util.Arrays;
-import org.mariotaku.harmony.app.TrackBrowserActivity;
+import org.mariotaku.harmony.activity.TracksBrowserActivity;
 import org.mariotaku.harmony.util.MusicUtils;
 import org.mariotaku.harmony.util.ServiceWrapper;
 import android.content.ContentResolver;

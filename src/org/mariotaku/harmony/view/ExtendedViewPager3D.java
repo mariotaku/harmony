@@ -20,37 +20,17 @@
 package org.mariotaku.harmony.view;
 
 import android.content.Context;
-import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
+import android.util.Log;
 
-public class ExtendedViewPager extends ViewPager {
+public class ExtendedViewPager3D extends ExtendedViewPager {
 
-	//private boolean mPagingEnabled = true;
-
-	public ExtendedViewPager(final Context context) {
-		this(context, null);
+	public ExtendedViewPager3D(final Context context) {
+		super(context);
 	}
-
-	public ExtendedViewPager(final Context context, final AttributeSet attrs) {
+	
+	public ExtendedViewPager3D(final Context context, final AttributeSet attrs) {
 		super(context, attrs);
-	}
-
-	@Override
-	public boolean onInterceptTouchEvent(final MotionEvent event) {
-		if (!isEnabled()) return false;
-		try {
-			return super.onInterceptTouchEvent(event);
-		} catch (final IllegalArgumentException e) {
-			// Workaround for multitouch crashes
-		}
-		return false;
-	}
-
-	@Override
-	public boolean onTouchEvent(final MotionEvent event) {
-		if (!isEnabled()) return false;
-		return super.onTouchEvent(event);
 	}
 
 }

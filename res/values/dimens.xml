@@ -35,9 +35,8 @@
 	<dimen name="gridview_item_height">152dip</dimen>
 	<dimen name="gridview_item_width">152dip</dimen>
 	<dimen name="music_browser_bottom_bar_height">52dp</dimen>
+	<dimen name="music_browser_page_padding">4dp</dimen>
 	<dimen name="music_browser_bottom_bar_button_width">56dp</dimen>
 	<dimen name="music_playback_control_buttons_height">64dp</dimen>
-	<dimen name="textsize_lyrics_min">12sp</dimen>
-	<dimen name="textsize_lyrics_max">26sp</dimen>
 
 </resources>

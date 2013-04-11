@@ -37,7 +37,7 @@ import android.widget.Toast;
 import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.adapter.AlbumsAdapter;
-import org.mariotaku.harmony.app.TrackBrowserActivity;
+import org.mariotaku.harmony.activity.TracksBrowserActivity;
 import org.mariotaku.harmony.model.AlbumInfo;
 import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.ServiceWrapper;
@@ -64,7 +64,7 @@ public class AlbumsFragment extends BaseFragment implements Constants, AdapterVi
 		String[] cols = new String[] { MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM, MediaStore.Audio.Albums.ARTIST,
 			MediaStore.Audio.Albums.ALBUM_ART };
 		Uri uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
-		return new CursorLoader(getActivity(), uri, cols, null, null, MediaStore.Audio.Albums.DEFAULT_SORT_ORDER);
+		return new CursorLoader(getActivity(), uri, cols, null, null, MediaStore.Audio.Albums.ALBUM);
 	}
 
 	@Override
@@ -76,12 +76,12 @@ public class AlbumsFragment extends BaseFragment implements Constants, AdapterVi
 
 	@Override
 	public void onItemClick(AdapterView<?> view, View child, int position, long id) {
-		final Bundle extras = new Bundle();
-		extras.putString(INTENT_KEY_TYPE, MediaStore.Audio.Albums.CONTENT_TYPE);
-		extras.putLong(MediaStore.Audio.Albums._ID, id);
-		final Intent intent = new Intent(Intent.ACTION_VIEW);
-		intent.setClass(getActivity(), TrackBrowserActivity.class);
-		intent.putExtras(extras);
+		final Uri.Builder builder = new Uri.Builder();
+		builder.scheme(SCHEME_HARMONY_TRACKS);
+		builder.authority(AUTHORITY_ALBUM);
+		builder.appendPath(String.valueOf(id));
+		final Intent intent = new Intent(Intent.ACTION_VIEW, builder.build());
+		intent.setClass(getActivity(), TracksBrowserActivity.class);
 		startActivity(intent);
 	}	
 

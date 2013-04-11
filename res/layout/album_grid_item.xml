@@ -41,23 +41,17 @@
 			android:id="@android:id/text1"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:layout_gravity="bottom"
 			android:drawableRight="@drawable/ic_indicator_nowplaying_small"
 			android:ellipsize="marquee"
 			android:singleLine="true"
-			android:text="@string/album"
-			android:textAppearance="?android:attr/textAppearanceMedium"
-			android:textColor="@android:color/white"/>
+			android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 		<TextView
 			android:id="@android:id/text2"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:layout_gravity="bottom"
 			android:ellipsize="end"
-			android:scrollHorizontally="true"
 			android:singleLine="true"
-			android:text="@string/artist"
 			android:textAppearance="?android:attr/textAppearanceSmall"/>
 	</LinearLayout>
 

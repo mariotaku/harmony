@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
 	<integer name="white">0xffffffff</integer>
+	<integer name="album_grid_rows">3</integer>
 </resources>

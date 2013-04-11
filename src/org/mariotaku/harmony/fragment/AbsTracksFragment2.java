@@ -167,7 +167,7 @@ public abstract class AbsTracksFragment2 extends BaseListFragment implements Loa
 
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
-		MusicUtils.playAll(getActivity(), mAdapter.getCursor());
+		MusicUtils.playAll(getActivity(), mService, mAdapter.getCursor());
 	}
 
 	@Override

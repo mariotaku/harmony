@@ -139,7 +139,7 @@ public class SearchFragment extends ListFragment implements Constants, LoaderCal
 			startActivity(intent);
 		} else if (position >= 0 && id >= 0) {
 			long[] list = new long[] { id };
-			MusicUtils.playAll(getActivity(), list, 0);
+			//MusicUtils.playAll(getActivity(), list, 0);
 		} else {
 			Log.e("QueryBrowser", "invalid position/id: " + position + "/" + id);
 		}
@@ -177,7 +177,7 @@ public class SearchFragment extends ListFragment implements Constants, LoaderCal
 				// This is a specific file
 				String id = uri.getLastPathSegment();
 				long[] list = new long[] { Long.valueOf(id) };
-				MusicUtils.playAll(getActivity(), list, 0);
+				//MusicUtils.playAll(getActivity(), list, 0);
 				getActivity().finish();
 				return;
 			} else if (data.startsWith("content://media/external/audio/albums/")) {

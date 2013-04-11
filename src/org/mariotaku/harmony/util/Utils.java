@@ -1,4 +1,6 @@
 package org.mariotaku.harmony.util;
+import android.database.Cursor;
+import android.provider.BaseColumns;
 
 public class Utils {
 
@@ -10,5 +12,18 @@ public class Utils {
 	public static int limit(final int value, final int value1, final int value2) {
 		final int min = Math.min(value1, value2), max = Math.max(value1, value2);
 		return Math.max(Math.min(value, max), min);
+	}
+	
+	public static long[] getCursorIds(final Cursor cursor) {
+		if (cursor == null || cursor.isClosed()) return null;
+		final int pos_backup = cursor.getPosition(), size = cursor.getCount(), idx = cursor.getColumnIndexOrThrow(BaseColumns._ID);
+		cursor.moveToFirst();
+		final long[] ids = new long[size];
+		for (int i = 0; i < size; i++) {
+			cursor.moveToPosition(i);
+			ids[i] = cursor.getLong(idx);
+		}
+		cursor.moveToPosition(pos_backup);
+		return ids;
 	}
 }

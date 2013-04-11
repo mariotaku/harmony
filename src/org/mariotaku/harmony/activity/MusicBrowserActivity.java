@@ -22,7 +22,7 @@ package org.mariotaku.harmony.activity;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
-import android.app.ActionBar.TabListener;
+import android.app.ActionBar.*;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -52,19 +52,25 @@ import android.widget.ImageView;
 import org.mariotaku.harmony.util.ImageLoaderWrapper;
 import org.mariotaku.harmony.app.HarmonyApplication;
 import org.mariotaku.harmony.model.AlbumInfo;
+import android.widget.ArrayAdapter;
 
-public class MusicBrowserActivity extends BaseActivity implements Constants, OnPageChangeListener, View.OnClickListener {
+public class MusicBrowserActivity extends BaseActivity implements Constants, View.OnClickListener, OnNavigationListener, 
+ 		TabListener {
 
 	private TextView mTrackName;
 	private TextView mTrackDetail;
 
 	private ImageView mAlbumArt;
 
+	private ArrayAdapter<String> mSpinnerAdapter;
+
 	public void onClick(final View view) {
 		// TODO: Implement this method
 		switch (view.getId()) {
 			case R.id.music_browser_control: {
-				startActivity(new Intent(this, MusicPlaybackActivity.class));
+				final Intent intent = new Intent(this, MusicPlaybackActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+				startActivity(intent);
 				break;
 			}
 		}
@@ -80,6 +86,8 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 	private PreferencesEditor mPrefs;
 
 	private ImageLoaderWrapper mImageLoader;
+	
+	private View mControlContainer;
 
 	@Override
 	public void onCreate(Bundle icicle) {
@@ -93,7 +101,7 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 
 		mPrefs = new PreferencesEditor(this);
 
-		String mount_state = Environment.getExternalStorageState();
+		final String mount_state = Environment.getExternalStorageState();
 
 		if (!Environment.MEDIA_MOUNTED.equals(mount_state)
 				&& !Environment.MEDIA_MOUNTED_READ_ONLY.equals(mount_state)) {
@@ -102,27 +110,34 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 		}
 
 		setContentView(R.layout.music_browser);
-		mViewPager.setOnPageChangeListener(this);
+		mControlContainer = findViewById(R.id.music_browser_control);
+		mSpinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, android.R.id.text1);
+		mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		if (mControlContainer == null) {
+			mActionBar.setDisplayShowCustomEnabled(true);
+			mActionBar.setDisplayShowHomeEnabled(true);
+			mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+			mActionBar.setListNavigationCallbacks(mSpinnerAdapter, this);
+			mActionBar.setCustomView(R.layout.music_browser_control_bar);
+			mControlContainer = mActionBar.getCustomView();
+			mViewPager.setEnabled(false);
+		}
+		mAlbumArt = (ImageView) mControlContainer.findViewById(R.id.album_art);
+		mTrackName = (TextView) mControlContainer.findViewById(R.id.track_name);
+		mTrackDetail = (TextView) mControlContainer.findViewById(R.id.track_detail);
 		mTabsAdapter = new TabsAdapter(getFragmentManager());
-		configureTabs(icicle);
-
+		mViewPager.setOnPageChangeListener(mTabsAdapter);
+		mViewPager.setOffscreenPageLimit(3);
+		mViewPager.setAdapter(mTabsAdapter);
+		configureTabs();
+		final int currenttab = mPrefs.getIntState(STATE_KEY_PAGE_POSITION_BROWSER, 0);
+		mActionBar.setSelectedNavigationItem(currenttab);
 	}
 
 	@Override
-	public void onPageScrolled(int arg0, float arg1, int arg2) {
-
-	}
-
-	@Override
-	public void onPageScrollStateChanged(int state) {
-
-	}
-
-	@Override
-	public void onPageSelected(int position) {
-		mActionBar.setSelectedNavigationItem(position);
-		mPrefs.setIntState(STATE_KEY_PAGE_POSITION_BROWSER, position);
-
+	public boolean onNavigationItemSelected(int itemPosition, long itemId) {
+		mViewPager.setCurrentItem(itemPosition);
+		return true;
 	}
 
 	@Override
@@ -136,25 +151,33 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 		mService = null;
 	}
 
+	@Override
 	public void onContentChanged() {
 		super.onContentChanged();
 		mViewPager = (ViewPager) findViewById(R.id.pager);
-		mAlbumArt = (ImageView) findViewById(R.id.album_art);
-		mTrackName = (TextView) findViewById(R.id.track_name);
-		mTrackDetail = (TextView) findViewById(R.id.track_detail);
 	}
 
-	private void configureTabs(Bundle args) {
+	@Override
+	public void onTabReselected(Tab tab, FragmentTransaction ft) {
 
+	}
+
+	@Override
+	public void onTabSelected(Tab tab, FragmentTransaction ft) {
+		mViewPager.setCurrentItem(tab.getPosition());
+	}		
+
+	@Override
+	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+
+	}
+	
+	private void configureTabs() {
 		mTabsAdapter.addFragment(new ArtistsFragment(), getString(R.string.artists));
 		mTabsAdapter.addFragment(new AlbumsFragment(), getString(R.string.albums));
 		mTabsAdapter.addFragment(new TracksFragment(), getString(R.string.tracks));
 		//mTabsAdapter.addFragment(new PlaylistFragment(), getString(R.string.playlists));
 		mTabsAdapter.addFragment(new GenresFragment(), getString(R.string.genres));
-		mViewPager.setOffscreenPageLimit(3);
-		mViewPager.setAdapter(mTabsAdapter);
-		int currenttab = mPrefs.getIntState(STATE_KEY_PAGE_POSITION_BROWSER, 0);
-		mActionBar.setSelectedNavigationItem(currenttab);
 	}
 	
 	protected void onCurrentMediaChanged() {
@@ -180,20 +203,21 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 		mImageLoader.displayImage(mAlbumArt, album != null ? album.album_art : null);
 	}
 
-	private class TabsAdapter extends FragmentStatePagerAdapter implements TabListener {
-
+	private class TabsAdapter extends FragmentStatePagerAdapter implements OnPageChangeListener {
+		
 		private ArrayList<Fragment> mFragments = new ArrayList<Fragment>();
 
 		public TabsAdapter(FragmentManager manager) {
 			super(manager);
 		}
 
-		public void addFragment(Fragment fragment, String name) {
+		public void addFragment(final Fragment fragment, final String name) {
 			mFragments.add(fragment);
-			Tab tab = mActionBar.newTab();
+			final Tab tab = mActionBar.newTab();
 			tab.setText(name);
-			tab.setTabListener(this);
+			tab.setTabListener(MusicBrowserActivity.this);
 			mActionBar.addTab(tab);
+			mSpinnerAdapter.add(name);
 			notifyDataSetChanged();
 		}
 
@@ -207,19 +231,21 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, OnP
 			return mFragments.get(position);
 		}
 
+
 		@Override
-		public void onTabReselected(Tab tab, FragmentTransaction ft) {
+		public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
 
 		}
 
 		@Override
-		public void onTabSelected(Tab tab, FragmentTransaction ft) {
-			mViewPager.setCurrentItem(tab.getPosition());
+		public void onPageScrollStateChanged(int state) {
+
 		}
 
 		@Override
-		public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-
+		public void onPageSelected(int position) {
+			mActionBar.setSelectedNavigationItem(position);
+			mPrefs.setIntState(STATE_KEY_PAGE_POSITION_BROWSER, position);
 		}
 
 	}

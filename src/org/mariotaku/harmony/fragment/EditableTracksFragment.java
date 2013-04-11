@@ -24,8 +24,8 @@ public abstract class EditableTracksFragment extends AbsTracksFragment implement
 	}
 	
 	@Override
-	public View onCreateView(final LayoutInflater inflater, final ViewGroup parent, final Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.tracks_browser, null);
+	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+		return inflater.inflate(R.layout.tracks_browser_editable, container, false);
 	}
 
 }

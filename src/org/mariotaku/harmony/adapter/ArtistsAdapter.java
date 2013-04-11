@@ -4,7 +4,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Audio;
@@ -18,13 +17,12 @@ import android.widget.SimpleCursorTreeAdapter;
 import android.widget.TextView;
 import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
-import org.mariotaku.harmony.util.MusicUtils;
 import org.mariotaku.harmony.model.AlbumInfo;
+import org.mariotaku.harmony.model.ArtistAlbumsCursor;
 import org.mariotaku.harmony.model.ArtistInfo;
+import org.mariotaku.harmony.util.MusicUtils;
 
 public final class ArtistsAdapter extends SimpleCursorTreeAdapter implements Constants {
-
-	private static final String EXTRAS_KEY_GROUP_POSITION = "group_position";
 
 	private final ExpandableListView mListView;
 	private final ExpandableListView.OnChildClickListener mChildClickListener;
@@ -35,13 +33,13 @@ public final class ArtistsAdapter extends SimpleCursorTreeAdapter implements Con
 	private int mArtistIdIdx, mArtistIdx, mAlbumNumberIdx, mTrackNumberIdx;
 	private long mCurrentArtistId, mCurrentAlbumId;
 
-	private static final String[] CHILD_COLUMNS = new String[] { Audio.Albums._ID, Audio.Albums.ALBUM, Audio.Albums.ARTIST,
-			Audio.Albums.NUMBER_OF_SONGS, Audio.Albums.NUMBER_OF_SONGS_FOR_ARTIST, Audio.Albums.ALBUM_ART };
+	private final Context mContext;
 
 	public ArtistsAdapter(final Context context, final ExpandableListView listView, ExpandableListView.OnChildClickListener childClickListener, 
 			final OnChildLongClickListener childLongClickListener) {
 		super(context, null, R.layout.artist_list_item_group, new String[0], new int[0],
 			  R.layout.artist_list_item_child, new String[0], new int[0]);
+		mContext = context;
 		mListView = listView;
 		mChildClickListener = childClickListener;
 		mChildLongClickListener = childLongClickListener;
@@ -67,7 +65,7 @@ public final class ArtistsAdapter extends SimpleCursorTreeAdapter implements Con
 	public void bindChildView(View view, Context context, final Cursor cursor, boolean isLastChild) {
 		final GridView gridview = (GridView) view;
 		final Bundle extras = cursor.getExtras();
-		final int groupPos = extras.getInt(EXTRAS_KEY_GROUP_POSITION);
+		final int groupPos = extras.getInt(EXTRA_GROUP_POSITION);
 		final AlbumsAdapter adapter = new AlbumsAdapter(context, cursor);
 		adapter.setCurrentAlbumId(mCurrentAlbumId);
 		gridview.setAdapter(adapter);
@@ -146,12 +144,7 @@ public final class ArtistsAdapter extends SimpleCursorTreeAdapter implements Con
 
 	@Override
 	protected Cursor getChildrenCursor(final Cursor groupCursor) {
-		final long id = groupCursor.getLong(groupCursor.getColumnIndex(Audio.Artists._ID));
-		final Uri uri = Audio.Artists.Albums.getContentUri(EXTERNAL_VOLUME, id);
-		final Cursor c = mResolver.query(uri, CHILD_COLUMNS, null, null, Audio.Albums.DEFAULT_SORT_ORDER);
-		final Bundle extras = c.getExtras();
-		extras.putInt(EXTRAS_KEY_GROUP_POSITION, groupCursor.getPosition());
-		return c;
+		return ArtistAlbumsCursor.getInstance(mContext, groupCursor);
 	}
 
 	public static interface OnChildLongClickListener {

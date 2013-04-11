@@ -958,36 +958,30 @@ public class MusicUtils implements Constants {
 
 	}
 
-	public static void playAll(Context context) {
-
-		playAll(context, getAllSongs(context), 0);
+	public static void playAll(Context context, final ServiceWrapper service) {
+		playAll(context, service, getAllSongs(context), 0);
 	}
 
-	public static void playAll(Context context, Cursor cursor) {
-
-		playAll(context, cursor, 0, false);
+	public static void playAll(Context context, final ServiceWrapper service, Cursor cursor) {
+		playAll(context, service, cursor, 0, false);
 	}
 
-	public static void playAll(Context context, Cursor cursor, int position) {
-
-		playAll(context, cursor, position, false);
+	public static void playAll(Context context, final ServiceWrapper service, Cursor cursor, int position) {
+		playAll(context, service, cursor, position, false);
 	}
 
-	public static void playAll(Context context, long[] list, int position) {
-
-		playAll(context, list, position, false);
+	public static void playAll(Context context, final ServiceWrapper service, long[] list, int position) {
+		playAll(context, service, list, position, false);
 	}
 
-	public static void playPlaylist(Context context, long plid) {
-
-		long[] list = getSongListForPlaylist(context, plid);
-		if (list != null) {
-			playAll(context, list, -1, false);
-		}
+	public static void playPlaylist(Context context, final ServiceWrapper service, long plid) {
+		final long[] list = getSongListForPlaylist(context, plid);
+		if (list == null) return;
+		playAll(context, service, list, -1, false);
 	}
 
-	public static void playRecentlyAdded(Context context) {
-
+	public static void playRecentlyAdded(final Context context, final ServiceWrapper service) {
+		if (context == null || service == null) return;
 		// do a query for all songs added in the last X weeks
 		int weekX = new PreferencesEditor(context).getIntPref(PREF_KEY_NUMWEEKS, 2) * 3600 * 24 * 7;
 		final String[] ccols = new String[] { MediaStore.Audio.Media._ID };
@@ -1005,7 +999,7 @@ public class MusicUtils implements Constants {
 				cursor.moveToNext();
 				list[i] = cursor.getLong(0);
 			}
-			MusicUtils.playAll(context, list, 0);
+			MusicUtils.playAll(context, service, list, 0);
 		} catch (SQLiteException ex) {
 		} finally {
 			cursor.close();
@@ -1174,14 +1168,12 @@ public class MusicUtils implements Constants {
 		}
 	}
 
-	public static void shuffleAll(Context context) {
-
-		playAll(context, getAllSongs(context), 0, true);
+	public static void shuffleAll(Context context, final ServiceWrapper service) {
+		playAll(context, service, getAllSongs(context), 0, true);
 	}
 
-	public static void shuffleAll(Context context, Cursor cursor) {
-
-		playAll(context, cursor, 0, true);
+	public static void shuffleAll(Context context, final ServiceWrapper service, Cursor cursor) {
+		playAll(context, service, cursor, 0, true);
 	}
 
 	public static void startSleepTimer(long milliseconds, boolean gentle) {
@@ -1259,15 +1251,6 @@ public class MusicUtils implements Constants {
 		return null;
 	}
 
-	private static Bitmap getDefaultArtwork(Context context) {
-
-		BitmapFactory.Options opts = new BitmapFactory.Options();
-		opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
-		return BitmapFactory.decodeStream(
-				context.getResources().openRawResource(R.drawable.ic_mp_albumart_unknown), null,
-				opts);
-	}
-
 	/**
 	 * @param ids
 	 *            The source array containing all the ids to be added to the
@@ -1301,14 +1284,14 @@ public class MusicUtils implements Constants {
 		}
 	}
 
-	private static void playAll(Context context, Cursor cursor, int position, boolean force_shuffle) {
-
-		long[] list = getSongListForCursor(cursor);
-		playAll(context, list, position, force_shuffle);
+	private static void playAll(Context context, final ServiceWrapper service, Cursor cursor, int position, boolean force_shuffle) {
+		final long[] list = getSongListForCursor(cursor);
+		playAll(context, service, list, position, force_shuffle);
 	}
 
-	private static void playAll(Context context, long[] list, int position, boolean force_shuffle) {
-		if (list == null || list.length == 0 || sService == null) {
+	private static void playAll(final Context context, final ServiceWrapper service, long[] list, int position, boolean force_shuffle) {
+		if (context == null || service == null) return;
+		if (list == null || list.length == 0 || service == null) {
 			Log.d(LOGTAG_MUSICUTILS, "attempt to play empty song list");
 			// Don't try to play empty playlists. Nothing good will come of it.
 			Toast.makeText(context, R.string.emptyplaylist, Toast.LENGTH_SHORT).show();
@@ -1316,28 +1299,27 @@ public class MusicUtils implements Constants {
 		}
 		try {
 			if (force_shuffle) {
-				sService.setShuffleMode(SHUFFLE_MODE_ALL);
+				service.setShuffleMode(SHUFFLE_MODE_ALL);
 			}
-			long curid = sService.getTrackInfo().id;
-			int curpos = sService.getQueuePosition();
+			long curid = service.getTrackInfo().id;
+			int curpos = service.getQueuePosition();
 			if (position != -1 && curpos == position && curid == list[position]) {
 				// The selected file is the file that's currently playing;
 				// figure out if we need to restart with a new playlist,
 				// or just launch the playback activity.
-				long[] playlist = sService.getQueue();
+				final long[] playlist = service.getQueue();
 				if (Arrays.equals(list, playlist)) {
 					// we don't need to set a new list, but we should resume
 					// playback if needed
-					sService.play();
+					service.play();
 					return; // the 'finally' block will still run
 				}
 			}
 			if (position < 0) {
 				position = 0;
 			}
-			sService.open(list, force_shuffle ? -1 : position);
-			sService.play();
-		} catch (RemoteException ex) {
+			service.open(list, force_shuffle ? -1 : position);
+			service.play();
 		} finally {
 			Intent intent = new Intent(INTENT_PLAYBACK_VIEWER)
 					.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

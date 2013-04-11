@@ -80,16 +80,17 @@
 			</intent-filter>
 		</activity>
 		<activity
-			android:name=".app.TrackBrowserActivity"
+			android:name=".activity.TracksBrowserActivity"
 			android:label="@string/tracks"
 			android:theme="@style/Theme.MusicBrowser">
 			<intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
 				<action android:name="android.intent.action.EDIT"/>
 				<action android:name="android.intent.action.VIEW"/>
 
 				<category android:name="android.intent.category.DEFAULT"/>
 
-				<data android:mimeType="vnd.android.cursor.dir/track"/>
+				<data android:scheme="harmony.tracks"/>
 			</intent-filter>
 		</activity>
 		<activity

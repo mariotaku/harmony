@@ -53,8 +53,18 @@ import org.mariotaku.harmony.view.iface.IExtendedViewGroup.TouchInterceptor;
 import android.widget.AbsListView;
 
 public class LyricsFragment extends BaseListFragment implements Constants, OnLongClickListener, LoaderManager.LoaderCallbacks<Lyrics>,
-		LyricsTimer.Callbacks, OnSizeChangedListener, TouchInterceptor, OnItemLongClickListener,
-				OnScaleGestureListener, OnScrollListener {
+		LyricsTimer.Callbacks, OnSizeChangedListener, TouchInterceptor, OnItemLongClickListener, OnScaleGestureListener,
+OnScrollListener, View.OnClickListener {
+
+	public void onClick(final View view) {
+		switch (view.getId()) {
+			case R.id.search_lyrics: {
+				searchLyrics();
+				break;
+			}
+		}
+	}
+	
 
 	private static final String EXTRA_LYRICS_PATH = "lyrics_path";
 	
@@ -63,6 +73,24 @@ public class LyricsFragment extends BaseListFragment implements Constants, OnLon
 	private PreferencesEditor mPreferences;
  
 	private ScaleGestureDetector mScaleGestureDetector;
+
+	private View mEmptyView;
+
+	private View mHeaderView;
+	private int mViewHeight;
+
+	private LyricsTimer mLyricsTimer;
+	private LyricsAdapter mAdapter;
+	private ServiceWrapper mService = null;
+
+	private Lyrics mLyrics;
+
+	private ListView mListView;
+	private ExtendedFrameLayout mContainerView;	
+
+	private boolean mLoaderInitialized;
+
+	private View mSearchLyricsButton;
 
 	@Override
 	public void dispatchTouchEvent(ViewGroup view, MotionEvent event) {
@@ -80,7 +108,7 @@ public class LyricsFragment extends BaseListFragment implements Constants, OnLon
 		mAdapter.setAutoWrapEnabled(false);
 		final View view = getActivity().findViewById(R.id.pager);
 		if (view instanceof ExtendedViewPager) {
-			((ExtendedViewPager) view).setPagingEnabled(false);
+			view.setEnabled(false);
 		}
 		mBusy = true;
 		return true;
@@ -91,7 +119,7 @@ public class LyricsFragment extends BaseListFragment implements Constants, OnLon
 		mAdapter.setAutoWrapEnabled(true);
 		final View view = getActivity().findViewById(R.id.pager);
 		if (view instanceof ExtendedViewPager) {
-			((ExtendedViewPager) view).setPagingEnabled(true);
+			view.setEnabled(true);
 		}
 		mBusy = false;
 	}
@@ -130,24 +158,10 @@ public class LyricsFragment extends BaseListFragment implements Constants, OnLon
 		mViewHeight = h;
 		mAdapter.setMaxWidth(w / 3 * 2);
 	}
-	
-	private View mHeaderView;
-	private int mViewHeight;
-
-	private LyricsTimer mLyricsTimer;
-	private LyricsAdapter mAdapter;
-	private ServiceWrapper mService = null;
-	
-	private Lyrics mLyrics;
-
-	private ListView mListView;
-	private ExtendedFrameLayout mContainerView;	
-	
-	private boolean mLoaderInitialized;
 
 	@Override
 	public void onLyricsChanged(Lyrics.Line current) {
-		if (current == null) return;
+		if (current == null || mLyrics == null) return;
 		final int position = current.getIndex();
 		if (!mBusy) {
 			final View item_view = mAdapter.getView(position, null, null);
@@ -172,7 +186,8 @@ public class LyricsFragment extends BaseListFragment implements Constants, OnLon
 	
 	@Override
 	public Loader<Lyrics> onCreateLoader(int id, Bundle args) {
-		setListShown(false);
+		mAdapter.loadLyrics(mLyrics = null);
+		mEmptyView.setVisibility(View.GONE);
 		return new LyricsLoader(getActivity(), args.getString(EXTRA_LYRICS_PATH));
 	}
 
@@ -181,11 +196,11 @@ public class LyricsFragment extends BaseListFragment implements Constants, OnLon
 		mLyrics = data;
 		mAdapter.loadLyrics(data);
 		mLyricsTimer.loadLyrics(data);
-		setListShown(true);	
 	}
 
 	@Override
 	public void onLoaderReset(final Loader<Lyrics> loader) {
+		mAdapter.loadLyrics(mLyrics = null);
 	}
 
 	@Override
@@ -202,22 +217,21 @@ public class LyricsFragment extends BaseListFragment implements Constants, OnLon
 		mListView = getListView();
 		mListView.addHeaderView(mHeaderView, null, false);
 		mListView.addFooterView(mHeaderView, null, false);
-		mListView.setDivider(null);
 		mListView.setOnItemLongClickListener(this);
 		mListView.setOnScrollListener(this);
 		mContainerView.setOnSizeChangedListener(this);
 		mContainerView.setTouchInterceptor(this);
+		mSearchLyricsButton.setOnClickListener(this);
 		mAdapter = new LyricsAdapter(getActivity());
 		setListAdapter(mAdapter);
-		setListShown(false);
 		mLyricsTimer = new LyricsTimer(this);
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		final View view = super.onCreateView(inflater, container, savedInstanceState);
-		mContainerView = new ExtendedFrameLayout(getActivity());
-		mContainerView.addView(view);
+		mContainerView = (ExtendedFrameLayout) inflater.inflate(R.layout.lyrics_viewer, container, false);
+		mEmptyView = mContainerView.findViewById(android.R.id.empty);
+		mSearchLyricsButton = mEmptyView.findViewById(R.id.search_lyrics);
 		return mContainerView;
 	}
 	
@@ -288,7 +302,7 @@ public class LyricsFragment extends BaseListFragment implements Constants, OnLon
 	}
 
 	private void searchLyrics() {
-
+		if (mService == null) return;
 		final TrackInfo info = mService.getTrackInfo();
 		if (info == null) return;
 		final String lyricsPath = info.data.substring(0, info.data.lastIndexOf(".")) + ".lrc";

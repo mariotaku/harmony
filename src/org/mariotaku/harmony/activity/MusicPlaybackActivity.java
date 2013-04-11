@@ -69,6 +69,7 @@ import org.mariotaku.harmony.view.ExtendedRelativeLayout;
 import android.view.ViewGroup;
 import android.view.MotionEvent;
 import org.mariotaku.harmony.util.Utils;
+import android.support.v4.app.NavUtils;
 
 public class MusicPlaybackActivity extends BaseActivity implements Constants, View.OnClickListener, SeekBar.OnSeekBarChangeListener,
 ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRelativeLayout.TouchInterceptor, ActionBar.OnMenuVisibilityListener {
@@ -420,8 +421,8 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 				final Intent intent = new Intent(INTENT_SLEEP_TIMER);
 				startActivity(intent);
 				break;
-				}
-			case DELETE_ITEMS:{
+			}
+			case DELETE_ITEMS: {
 				final Intent intent = new Intent(INTENT_DELETE_ITEMS);
 				Bundle bundle = new Bundle();
 //				bundle.putString(
@@ -431,20 +432,21 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 //								.toString());
 				intent.putExtras(bundle);
 				startActivity(intent);
-				break;}
-			case SETTINGS:{
+				break;
+			}
+			case SETTINGS: {
 				final Intent intent = new Intent(INTENT_APPEARANCE_SETTINGS);
 				startActivity(intent);
-				break;}
-			case GOTO_HOME: {
-				final Intent intent = new Intent(INTENT_MUSIC_BROWSER);
-				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-				startActivity(intent);
-				finish();
-				break;}
-			case ADD_TO_FAVORITES:{
+				break;
+			}
+			case MENU_HOME: {
+				NavUtils.navigateUpFromSameTask(this);
+				break;
+			}
+			case ADD_TO_FAVORITES: {
 				toggleFavorite();
-				break;}
+				break;
+			}
 			case MENU_SHUFFLE_MODE_NONE: {
 				mService.setShuffleMode(SHUFFLE_MODE_NONE);
 				break;

@@ -234,5 +234,5 @@
 	<string name="repeat_mode_none">Repeat none</string>
 	<string name="repeat_mode_all">Repeat all</string>
 	<string name="repeat_mode_current">Repeat current</string>
-
+	<string name="all_tracks">All songs</string>
 </resources>

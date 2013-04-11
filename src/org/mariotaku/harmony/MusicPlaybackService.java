@@ -699,7 +699,6 @@ public class MusicPlaybackService extends Service implements Constants {
 		// case.
 		Message msg = mDelayedStopHandler.obtainMessage();
 		mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
-		Log.e(LOGTAG_SERVICE, String.format("Service started, repeat mode:%d, shuffle mode:%d", mRepeatMode, mShuffleMode));
 	}
 
 	@Override
