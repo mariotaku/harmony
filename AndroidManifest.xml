@@ -34,12 +34,11 @@
 	<uses-permission android:name="android.permission.VIBRATE"/>
 	<uses-permission android:name="android.permission.RECORD_AUDIO"/>
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
-
-	<supports-screens android:anyDensity="true">
-	</supports-screens>
-
 	<uses-permission android:name="android.permission.BROADCAST_STICKY"/>
 	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+	<supports-screens android:anyDensity="true"/>
+
 
 	<application
 		android:allowTaskReparenting="true"
@@ -81,7 +80,6 @@
 		</activity>
 		<activity
 			android:name=".activity.TracksBrowserActivity"
-			android:label="@string/tracks"
 			android:theme="@style/Theme.MusicBrowser">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
@@ -91,6 +89,19 @@
 				<category android:name="android.intent.category.DEFAULT"/>
 
 				<data android:scheme="harmony.tracks"/>
+			</intent-filter>
+		</activity>		
+		<activity
+			android:name=".activity.AlbumsBrowserActivity"
+			android:theme="@style/Theme.MusicBrowser">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
+				<action android:name="android.intent.action.EDIT"/>
+				<action android:name="android.intent.action.VIEW"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+
+				<data android:scheme="harmony.albums"/>
 			</intent-filter>
 		</activity>
 		<activity
@@ -111,7 +122,7 @@
 		<activity
 			android:name=".dialog.PlayShortcut"
 			android:label="@string/play_selection"
-			android:theme="@android:style/Theme.NoDisplay">
+			android:theme="@style/Theme.NoDisplay">
 			<intent-filter>
 				<action android:name="org.mariotaku.harmony.PLAY_SHORTCUT"/>
 
@@ -120,7 +131,7 @@
 		</activity>
 		<activity
 			android:name=".dialog.ScanningProgress"
-			android:theme="@android:style/Theme.NoDisplay"/>
+			android:theme="@style/Theme.NoDisplay"/>
 		<activity
 			android:name=".app.MusicSettingsActivity"
 			android:label="@string/settings">
@@ -151,7 +162,7 @@
 		<activity
 			android:name=".dialog.DeleteDialog"
 			android:label="@string/delete"
-			android:theme="@android:style/Theme.NoDisplay">
+			android:theme="@style/Theme.NoDisplay">
 			<intent-filter>
 				<action android:name="org.mariotaku.harmony.DELETE_ITEMS"/>
 
@@ -161,7 +172,7 @@
 		<activity
 			android:name=".dialog.PlaylistDialog"
 			android:label="@string/rename"
-			android:theme="@android:style/Theme.NoDisplay">
+			android:theme="@style/Theme.NoDisplay">
 			<intent-filter>
 				<action android:name="org.mariotaku.harmony.CREATE_PLAYLIST"/>
 
@@ -177,7 +188,7 @@
 			android:name=".dialog.PlaylistPicker"
 			android:icon="@drawable/ic_launcher_shortcut_playlist"
 			android:label="@string/playlists"
-			android:theme="@android:style/Theme.NoDisplay">
+			android:theme="@style/Theme.NoDisplay">
 			<intent-filter>
 				<action android:name="org.mariotaku.harmony.ADD_TO_PLAYLIST"/>
 
@@ -192,7 +203,7 @@
 		<activity
 			android:name=".dialog.SearchDialog"
 			android:label="@string/search"
-			android:theme="@android:style/Theme.NoDisplay">
+			android:theme="@style/Theme.NoDisplay">
 			<intent-filter>
 				<action android:name="org.mariotaku.harmony.SEARCH_LYRICS"/>
 
@@ -207,7 +218,7 @@
 		<activity
 			android:name=".dialog.SleepTimerDialog"
 			android:label="@string/sleep_timer"
-			android:theme="@android:style/Theme.NoDisplay">
+			android:theme="@style/Theme.NoDisplay">
 			<intent-filter>
 				<action android:name="org.mariotaku.harmony.SLEEP_TIMER"/>
 
@@ -217,7 +228,7 @@
 		<activity
 			android:name=".dialog.WeekSelector"
 			android:label="@string/set_time"
-			android:theme="@android:style/Theme.NoDisplay">
+			android:theme="@style/Theme.NoDisplay">
 			<intent-filter>
 				<action android:name="org.mariotaku.harmony.WEEK_SELECTOR"/>
 

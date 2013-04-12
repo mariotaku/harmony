@@ -72,7 +72,7 @@ public class ArrayAdapter<T> extends BaseAdapter {
 
 	@Override
 	public View getView(final int position, final View convertView, final ViewGroup parent) {
-		return convertView != null ? convertView : mInflater.inflate(mLayoutRes, null);
+		return convertView != null ? convertView : mInflater.inflate(mLayoutRes, parent, false);
 	}
 
 	public final void sort(final Comparator<? super T> comparator) {

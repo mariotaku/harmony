@@ -39,14 +39,11 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 public class LyricsDownloader {
 
-	private final static char[] digit = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A',
+	private static final char[] HEX_DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A',
 			'B', 'C', 'D', 'E', 'F' };
 
-	private final static String UTF_8 = "utf-8";
-
-	private List<Integer> mIdList = new ArrayList<Integer>();
-
-	private List<String> mVerifyCodeList = new ArrayList<String>();
+	private static final String UTF_16LE = "utf-16le";
+	private static final String UTF_8 = "utf-8";
 
 	public OnProgressChangeListener mListener;
 
@@ -62,9 +59,9 @@ public class LyricsDownloader {
 	 * @param file
 	 *            Destination file.
 	 */
-	public void download(int id, File file) throws MalformedURLException, IOException {
+	public void download(SearchResult result, File file) throws IOException {
 
-		String url_string = urlDownload(mIdList.get(id), mVerifyCodeList.get(id));
+		final String url_string = buildDownloadUrl(result.getId(), result.getVerifyCode());
 
 		URL url = new URL(url_string);
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -95,13 +92,11 @@ public class LyricsDownloader {
 	 * @param file
 	 *            Destination file path.
 	 */
-	public void download(int id, String path) throws MalformedURLException, IOException {
-
-		download(id, new File(path));
+	public void download(SearchResult result, String path) throws IOException {
+		download(result, new File(path));
 	}
 
 	public void removeOnProgressChangeListener(OnProgressChangeListener listener) {
-
 		mListener = null;
 	}
 
@@ -115,11 +110,10 @@ public class LyricsDownloader {
 	 * @param track
 	 *            The name of sound track.
 	 */
-	public String[] search(String artist, String track) throws UnsupportedEncodingException,
-			XmlPullParserException, IOException {
+	public SearchResult[] search(String artist, String track) throws XmlPullParserException, IOException {
 
-		String url = urlSearch(encode(artist), encode(track));
-		return parseResult(get(url, UTF_8));
+		URL url = new URL(buildSearchUrl(encode(artist), encode(track)));
+		return parseResult(url.openStream());
 	}
 
 	public void setOnProgressChangeListener(OnProgressChangeListener listener) {
@@ -129,7 +123,6 @@ public class LyricsDownloader {
 
 	private String encode(String source) {
 
-		final String UTF_16LE = "utf-16le";
 
 		if (source == null) {
 			source = "";
@@ -148,59 +141,28 @@ public class LyricsDownloader {
 		char[] charactor = new char[2];
 		StringBuilder builder = new StringBuilder();
 		for (byte byteValue : bytes) {
-			charactor[0] = digit[byteValue >>> 4 & 0X0F];
-			charactor[1] = digit[byteValue & 0X0F];
+			charactor[0] = HEX_DIGITS[byteValue >>> 4 & 0X0F];
+			charactor[1] = HEX_DIGITS[byteValue & 0X0F];
 			builder.append(charactor);
 		}
 		return builder.toString();
 	}
 
-	// get text from url
-	private String get(String url, String encoding) throws UnsupportedEncodingException,
-			IOException {
+	private static final String TAG_RESULT = "result";
+	private static final String TAG_LRC = "lrc";
+	private static final String ATTR_ID = "id";
+	private static final String ATTR_ARTIST = "artist";
+	private static final String ATTR_TITLE = "title";
+	
+	private SearchResult[] parseResult(final InputStream is) throws XmlPullParserException, IOException {
 
-		if (url == null) return null;
-		URLConnection conn = new URL(url).openConnection();
-		conn.connect();
-		String contentType = conn.getContentType();
-		if (contentType == null) {
-			contentType = encoding;
-		}
-
-		Pattern pattern = Pattern.compile("(?i)\\bcharset=([^\\s;]+)");
-		Matcher matcher = pattern.matcher(contentType);
-		String encoder = encoding;
-		if (matcher.find()) {
-			encoder = matcher.group(1);
-		}
-
-		BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(),
-				encoder));
-		char[] str = new char[4096];
-		StringBuilder builder = new StringBuilder();
-		for (int len; (len = reader.read(str)) > -1;) {
-			builder.append(str, 0, len);
-		}
-		return builder.toString();
-	}
-
-	private String[] parseResult(String xml) throws XmlPullParserException, IOException {
-
-		if (xml == null || "".equals(xml)) return new String[] {};
-
-		mIdList = new ArrayList<Integer>();
-		mVerifyCodeList = new ArrayList<String>();
-		List<String> mNameList = new ArrayList<String>();
-		String TAG_RESULT = "result", TAG_LRC = "lrc";
-		String ATTR_ID = "id", ATTR_ARTIST = "artist", ATTR_TITLE = "title";
-		String verify_code = "", name = "";
-		int id = 0;
+		final ArrayList<SearchResult> resultList = new ArrayList<SearchResult>();
 
 		XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 		factory.setNamespaceAware(true);
 
 		XmlPullParser parser = factory.newPullParser();
-		parser.setInput(new StringReader(xml));
+		parser.setInput(new InputStreamReader(is));
 
 		int eventType = parser.getEventType();
 		String tagName;
@@ -216,7 +178,7 @@ public class LyricsDownloader {
 					eventType = parser.next();
 					break;
 				}
-				throw new RuntimeException("Expecting result, got " + tagName);
+				throw new IOException("Expecting result, got " + tagName);
 			}
 			eventType = parser.next();
 		} while (eventType != XmlPullParser.END_DOCUMENT);
@@ -230,14 +192,13 @@ public class LyricsDownloader {
 					}
 					tagName = parser.getName();
 					if (TAG_LRC.equals(tagName)) {
-						String artist = parser
-								.getAttributeValue(parser.getNamespace(), ATTR_ARTIST);
-						String title = parser.getAttributeValue(parser.getNamespace(), ATTR_TITLE);
-						id = Integer.valueOf(parser.getAttributeValue(parser.getNamespace(),
-								ATTR_ID));
-
-						name = artist + "\n" + title;
-						verify_code = verify(artist, title, id);
+						final String artist = parser.getAttributeValue(parser.getNamespace(), ATTR_ARTIST);
+						final String title = parser.getAttributeValue(parser.getNamespace(), ATTR_TITLE);
+						final int id = Integer.valueOf(parser.getAttributeValue(parser.getNamespace(), ATTR_ID));
+						final String verifyCode = generateVerifyCode(artist, title, id);
+						if (title != null && id > 0 && verifyCode != null) {
+							resultList.add(new SearchResultImpl(id, verifyCode, title, artist));
+						}
 					} else {
 						lookingForEndOfUnknownTag = true;
 						unknownTagName = tagName;
@@ -248,10 +209,6 @@ public class LyricsDownloader {
 					if (lookingForEndOfUnknownTag && tagName.equals(unknownTagName)) {
 						lookingForEndOfUnknownTag = false;
 						unknownTagName = null;
-					} else if (TAG_LRC.equals(tagName)) {
-						mNameList.add(name);
-						mIdList.add(id);
-						mVerifyCodeList.add(verify_code);
 					} else if (TAG_RESULT.equals(tagName)) {
 						reachedEndOfResult = true;
 					}
@@ -259,13 +216,17 @@ public class LyricsDownloader {
 			}
 			eventType = parser.next();
 		}
-		return mNameList.toArray(new String[mNameList.size()]);
+		return resultList.toArray(new SearchResult[resultList.size()]);
 	}
 
-	private String verify(String artist, String track, int id) {
+	private static String generateVerifyCode(final String artist, final String title, final int id) {
 
-		try {
-			byte[] bytes = (artist + track).getBytes(UTF_8);
+			final byte[] bytes;
+			try {
+				bytes = (artist + title).getBytes(UTF_8);
+			} catch (UnsupportedEncodingException e) {
+				return null;
+			}
 			int[] song = new int[bytes.length];
 			for (int i = 0; i < bytes.length; i++) {
 				song[i] = bytes[i] & 0xff;
@@ -321,19 +282,13 @@ public class LyricsDownloader {
 			intVal5 = intVal5 * (intVal2 ^ id);
 
 			return String.valueOf(intVal5);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return "";
-		}
 	}
 
-	private static String urlDownload(int id, String code) {
-
+	private static String buildDownloadUrl(int id, String code) {
 		return "http://ttlrcct.qianqian.com/dll/lyricsvr.dll?dl?Id=" + id + "&Code=" + code;
 	}
 
-	private static String urlSearch(String artist, String track) {
-
+	private static String buildSearchUrl(String artist, String track) {
 		return "http://ttlrcct.qianqian.com/dll/lyricsvr.dll?sh?Artist=" + artist + "&Title="
 				+ track + "&Flags=0";
 	}
@@ -341,5 +296,49 @@ public class LyricsDownloader {
 	public interface OnProgressChangeListener {
 
 		void onProgressChange(int progress, int total);
+	}
+	
+	public static interface SearchResult {
+		
+		public int getId();
+		
+		public String getVerifyCode();
+		
+		public String getArtist();
+		
+		public String getTitle();
+		
+	}
+	
+	private static final class SearchResultImpl implements SearchResult {
+
+		private final String artist;
+		private final String title;
+		private final String verifyCode;
+		private final int id;
+		
+		public SearchResultImpl(final int id, final String verifyCode, final String title, final String artist) {
+			this.id = id;
+			this.verifyCode = verifyCode;
+			this.title = title;
+			this.artist = artist;
+		}
+		
+		public String getArtist() {
+			return artist;
+		}
+
+		public String getTitle() {
+			return title;
+		}
+
+		public int getId() {
+			return id;
+		}
+
+		public String getVerifyCode() {
+			return verifyCode;
+		}
+		
 	}
 }

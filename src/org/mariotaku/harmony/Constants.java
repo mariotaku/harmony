@@ -25,9 +25,11 @@ public interface Constants {
  	public static final String CACHE_DIR_NAME_ALBUMART = "albumart";
 
 	public static final String SCHEME_HARMONY_TRACKS = "harmony.tracks";
-	public static final String AUTHORITY_ALBUM = "album";
-	public static final String AUTHORITY_ARTIST = "artist";
-	public static final String AUTHORITY_GENRE = "genre";
+	public static final String SCHEME_HARMONY_ALBUMS = "harmony.albums";
+	public static final String AUTHORITY_IDS = "ids";
+	public static final String AUTHORITY_ALBUMS = "albums";
+	public static final String AUTHORITY_ARTISTS = "artists";
+	public static final String AUTHORITY_GENRES = "genres";
  
 	public final static int ACTION_NOW = 1;
 	public final static int ACTION_NEXT = 2;

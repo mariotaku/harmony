@@ -33,21 +33,22 @@ import org.mariotaku.harmony.fragment.AlbumTracksFragment;
 import org.mariotaku.harmony.fragment.ArtistTracksFragment;
 import org.mariotaku.harmony.util.ServiceWrapper;
 import org.mariotaku.harmony.util.ArrayUtils;
+import org.mariotaku.harmony.fragment.AlbumsFragment;
 
-public class TracksBrowserActivity extends BaseActivity implements Constants {
+public class AlbumsBrowserActivity extends BaseActivity implements Constants {
 
 	private static final UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
-	private static final int URI_CODE_ALBUM_TRACKS = 1;
-	private static final int URI_CODE_ARTIST_TRACKS = 2;
+	private static final int URI_CODE_ALBUMS = 1;
+	private static final int URI_CODE_ARTIST_ALBUMS = 2;
 
 	private ActionBar mActionBar;
 
- 
+
 	static {
-		URI_MATCHER.addURI(AUTHORITY_ALBUMS, "*", URI_CODE_ALBUM_TRACKS);
-		URI_MATCHER.addURI(AUTHORITY_ARTISTS, "*", URI_CODE_ARTIST_TRACKS);
+		URI_MATCHER.addURI(AUTHORITY_IDS, "*", URI_CODE_ALBUMS);
+		//URI_MATCHER.addURI(AUTHORITY_ARTISTS, "*", URI_CODE_ARTIST_ALBUMS);
 	}
- 
+
 	private Uri mUri;
 
 	@Override
@@ -55,23 +56,16 @@ public class TracksBrowserActivity extends BaseActivity implements Constants {
 		super.onCreate(savedInstanceState);
 		mActionBar = getActionBar();
 		mActionBar.setDisplayHomeAsUpEnabled(true);
-		
+
 		final Intent intent = getIntent();
 		final Uri uri = intent.getData();
 		final Fragment fragment;
 		final Bundle args = new Bundle();
 		switch (URI_MATCHER.match(uri)) {
-			case URI_CODE_ALBUM_TRACKS: {
-				fragment = new AlbumTracksFragment();
+			case URI_CODE_ALBUMS: {
+				fragment = new AlbumsFragment();
 				final long[] ids = ArrayUtils.fromString(uri.getLastPathSegment(), ',');
 				args.putLongArray(INTENT_KEY_ALBUM_IDS, ids);
-				fragment.setArguments(args);
-				break;
-			}
-			case URI_CODE_ARTIST_TRACKS: {
-				fragment = new ArtistTracksFragment();
-				final long[] ids = ArrayUtils.fromString(uri.getLastPathSegment(), ',');
-				args.putLongArray(INTENT_KEY_ARTIST_IDS, ids);
 				fragment.setArguments(args);
 				break;
 			}
@@ -86,15 +80,6 @@ public class TracksBrowserActivity extends BaseActivity implements Constants {
 		ft.commit();
 	}
 
-	static long parseLong(final String string, final long def) {
-		if (string == null) return def;
-		try {
-			return Long.parseLong(string);
-		} catch (NumberFormatException e) {
-			return def;
-		}
-	}
-	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {

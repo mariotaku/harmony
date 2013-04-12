@@ -182,7 +182,7 @@ public abstract class AbsTracksFragment2 extends BaseListFragment implements Loa
 	
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup parent, final Bundle savedInstanceState) {
-		final View v = inflater.inflate(R.layout.tracks_browser, null);
+		final View v = inflater.inflate(R.layout.tracks_browser, parent, false);
 		mListView = (DragSortListView) v.findViewById(android.R.id.list);
 		return v;
 	}

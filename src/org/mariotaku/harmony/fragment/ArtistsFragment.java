@@ -28,105 +28,73 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Audio;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ExpandableListView;
+import android.widget.GridView;
 import android.widget.Toast;
 import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.adapter.ArtistsAdapter;
 import org.mariotaku.harmony.activity.TracksBrowserActivity;
 import org.mariotaku.harmony.model.AlbumInfo;
-import org.mariotaku.harmony.model.ArtistInfo;
 import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.ServiceWrapper;
-import android.content.ContentResolver;
-import android.provider.BaseColumns;
-import org.mariotaku.harmony.util.ArrayUtils;
-import org.mariotaku.harmony.util.Utils;
 
-public class ArtistsFragment extends BaseFragment implements Constants, LoaderManager.LoaderCallbacks<Cursor>, ExpandableListView.OnChildClickListener,
-		ArtistsAdapter.OnChildLongClickListener, AdapterView.OnItemLongClickListener {
+public class ArtistsFragment extends BaseFragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener,
+LoaderManager.LoaderCallbacks<Cursor> {
 
 	private ArtistsAdapter mAdapter;
-	private ExpandableListView mListView;
+	private GridView mGridView;
 	private ServiceWrapper mService;
-	private ContentResolver mResolver;
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		mResolver = getActivity().getContentResolver();
-		mAdapter = new ArtistsAdapter(getActivity(), mListView, this, this);
-		mListView.setAdapter(mAdapter);
-		mListView.setOnItemLongClickListener(this);
+		mAdapter = new ArtistsAdapter(getActivity());
+		mGridView.setAdapter(mAdapter);
+		mGridView.setOnItemClickListener(this);
+		mGridView.setOnItemLongClickListener(this);
 		getLoaderManager().initLoader(0, null, this);
-	}
-	
-	@Override
-	public boolean onChildClick(ExpandableListView listView, View child, int groupPos, int childPos, long id) {
-		final Uri.Builder builder = new Uri.Builder();
-		builder.scheme(SCHEME_HARMONY_TRACKS);
-		if (id < 0) {
-			final ArtistInfo artist = mAdapter.getArtistInfo(groupPos);
-			if (artist == null) return false;
-			final Uri uri = Audio.Artists.Albums.getContentUri(EXTERNAL_VOLUME, artist.id);
-			final Cursor c = mResolver.query(uri, new String[] { BaseColumns._ID }, null, null, null);
-			builder.authority(AUTHORITY_ALBUM);
-			builder.appendPath(ArrayUtils.toString(Utils.getCursorIds(c), ',', false));
-			if (c != null) {
-				c.close();
-			}
-		} else {
-			builder.authority(AUTHORITY_ALBUM);
-			builder.appendPath(String.valueOf(id));
-		}
-		final Intent intent = new Intent(Intent.ACTION_VIEW, builder.build());
-		intent.setClass(getActivity(), TracksBrowserActivity.class);
-		startActivity(intent);
-		return true;
-	}
-
-	@Override
-	public boolean onChildLongClick(final ExpandableListView listView, final View view, final int groupPos, final int childPos, final long id) {
-		final AlbumInfo album = mAdapter.getAlbumInfo(groupPos, childPos);
-		Toast.makeText(getActivity(), "album " + album + " selected", Toast.LENGTH_SHORT).show();
-		return true;
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		final String[] cols = new String[] { Audio.Artists._ID, Audio.Artists.ARTIST,
-				Audio.Artists.NUMBER_OF_ALBUMS, Audio.Artists.NUMBER_OF_TRACKS };
-		final Uri uri = Audio.Artists.EXTERNAL_CONTENT_URI;
-		return new CursorLoader(getActivity(), uri, cols, null, null,
-				Audio.Artists.DEFAULT_SORT_ORDER);
+		String[] cols = new String[] { MediaStore.Audio.Artists._ID, MediaStore.Audio.Artists.ARTIST,
+				MediaStore.Audio.Artists.NUMBER_OF_ALBUMS };
+		Uri uri = MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI;
+		return new CursorLoader(getActivity(), uri, cols, null, null, MediaStore.Audio.Artists.ARTIST);
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		final View view = inflater.inflate(R.layout.artists_browser, container, false);
-		mListView = (ExpandableListView) view.findViewById(android.R.id.list);
+		mGridView = (GridView) view.findViewById(android.R.id.list);
 		return view;
 	}
 
 	@Override
-	public boolean onItemLongClick(final AdapterView<?> view, final View child, final int position, final long id) {
-		final long packed_pos = mListView.getExpandableListPosition(position);
-		final int type = ExpandableListView.getPackedPositionType(packed_pos);
-		if (type != ExpandableListView.PACKED_POSITION_TYPE_GROUP) return false;
-		final int group_pos = ExpandableListView.getPackedPositionGroup(packed_pos);
-		final ArtistInfo artist = mAdapter.getArtistInfo(group_pos);
-		Toast.makeText(getActivity(), "artist " + artist + " selected", Toast.LENGTH_SHORT).show();
+	public void onItemClick(AdapterView<?> view, View child, int position, long id) {
+		final Uri.Builder builder = new Uri.Builder();
+		builder.scheme(SCHEME_HARMONY_ALBUMS);
+		builder.authority(AUTHORITY_ALBUMS);
+		builder.appendPath(String.valueOf(id));
+		final Intent intent = new Intent(Intent.ACTION_VIEW, builder.build());
+		intent.setClass(getActivity(), TracksBrowserActivity.class);
+		startActivity(intent);
+	}	
+
+	@Override
+	public boolean onItemLongClick(AdapterView<?> view, View child, int position, long id) {
+		//final AlbumInfo album = mAdapter.getAlbumInfo(position);
+		//Toast.makeText(getActivity(), "album " + album + " selected", Toast.LENGTH_SHORT).show();
 		return true;
 	}
-	
+
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-		mAdapter.setGroupCursor(null);
+		mAdapter.changeCursor(null);
 	}
 
 	@Override
@@ -134,11 +102,6 @@ public class ArtistsFragment extends BaseFragment implements Constants, LoaderMa
 		mAdapter.changeCursor(data);
 	}
 
-	@Override
-	protected void onCurrentMediaChanged() {
-		updateNowPlaying();
-	}
-	
 	@Override
 	protected void onServiceConnected(final ServiceWrapper service) {
 		mService = service;
@@ -150,10 +113,14 @@ public class ArtistsFragment extends BaseFragment implements Constants, LoaderMa
 		mService = null;
 	}
 
+	@Override
+	protected void onCurrentMediaChanged() {
+		updateNowPlaying();
+	}
+
 	private void updateNowPlaying() {
 		final TrackInfo track = mService != null ? mService.getTrackInfo() : null;
 		mAdapter.setCurrentArtistId(track != null ? track.artist_id : -1);
-		mAdapter.setCurrentAlbumId(track != null ? track.album_id : -1);
 	}
-	
+
 }

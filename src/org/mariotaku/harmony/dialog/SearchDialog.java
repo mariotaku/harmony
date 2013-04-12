@@ -468,15 +468,13 @@ public class SearchDialog extends Activity implements Constants, TextWatcher, On
 		@Override
 		protected Void doInBackground(String... params) {
 
-			try {
-				mDownloader.download(Integer.valueOf(params[0]), params[1]);
-			} catch (NumberFormatException e) {
-				e.printStackTrace();
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+//			try {
+//				mDownloader.download(Integer.valueOf(params[0]), params[1]);
+//			} catch (NumberFormatException e) {
+//				e.printStackTrace();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
 			return null;
 		}
 
@@ -502,7 +500,7 @@ public class SearchDialog extends Activity implements Constants, TextWatcher, On
 		}
 	}
 
-	private class LyricsSearchTask extends AsyncTask<String, Void, String[]> implements
+	private class LyricsSearchTask extends AsyncTask<String, Void, LyricsDownloader.SearchResult[]> implements
 			OnCancelListener, OnClickListener {
 
 		private int mItem = 0;
@@ -537,10 +535,11 @@ public class SearchDialog extends Activity implements Constants, TextWatcher, On
 			}
 		}
 
-		private void chooseLyrics(final String[] result) {
+		private void chooseLyrics(final LyricsDownloader.SearchResult[] result) {
 
 			mLyricsChooser = new AlertDialog.Builder(SearchDialog.this)
-					.setTitle(R.string.search_lyrics).setItems(result, this)
+					.setTitle(R.string.search_lyrics)
+					//.setItems(result, this)
 					.setOnCancelListener(this).show();
 		}
 
@@ -563,7 +562,7 @@ public class SearchDialog extends Activity implements Constants, TextWatcher, On
 		}
 
 		@Override
-		protected String[] doInBackground(String... params) {
+		protected LyricsDownloader.SearchResult[] doInBackground(String... params) {
 
 			mPath = params[2];
 			try {
@@ -579,7 +578,7 @@ public class SearchDialog extends Activity implements Constants, TextWatcher, On
 		}
 
 		@Override
-		protected void onPostExecute(String[] result) {
+		protected void onPostExecute(LyricsDownloader.SearchResult[] result) {
 
 			if (mProgress != null) {
 				mProgress.dismiss();

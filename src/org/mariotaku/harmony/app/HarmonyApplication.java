@@ -5,9 +5,10 @@ import android.content.Context;
 import com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiscCache;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.download.BaseImageDownloader;
+import com.nostra13.universalimageloader.core.download.HttpClientImageDownloader;
 import java.io.File;
 import org.mariotaku.harmony.Constants;
-import org.mariotaku.harmony.util.HarmonyImageDownloader;
 import org.mariotaku.harmony.util.ImageLoaderWrapper;
 import org.mariotaku.harmony.util.ImageMemoryCache;
 import org.mariotaku.harmony.util.URLFileNameGenerator;
@@ -16,7 +17,6 @@ public class HarmonyApplication extends Application implements Constants {
 
 	private ImageLoaderWrapper mImageLoaderWrapper;
 	private ImageLoader mImageLoader;
-	private HarmonyImageDownloader mImageDownloader;
 	
 	public ImageLoader getImageLoader() {
 		if (mImageLoader != null) return mImageLoader;
@@ -29,7 +29,7 @@ public class HarmonyApplication extends Application implements Constants {
 		cb.threadPoolSize(8);
 		cb.memoryCache(new ImageMemoryCache(40));
 		cb.discCache(new UnlimitedDiscCache(cache_dir, new URLFileNameGenerator()));
-		cb.imageDownloader(mImageDownloader);
+		cb.imageDownloader(new BaseImageDownloader(this));
 		loader.init(cb.build());
 		return mImageLoader = loader;
 	}

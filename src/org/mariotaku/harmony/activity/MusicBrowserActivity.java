@@ -21,11 +21,13 @@
 package org.mariotaku.harmony.activity;
 
 import android.app.ActionBar;
+import android.app.ActionBar.OnNavigationListener;
 import android.app.ActionBar.Tab;
-import android.app.ActionBar.*;
+import android.app.ActionBar.TabListener;
+import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -33,29 +35,29 @@ import android.os.Environment;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.view.Menu;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
 import java.util.ArrayList;
 import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
 import org.mariotaku.harmony.activity.BaseActivity;
+import org.mariotaku.harmony.app.HarmonyApplication;
 import org.mariotaku.harmony.dialog.ScanningProgress;
 import org.mariotaku.harmony.fragment.AlbumsFragment;
-import org.mariotaku.harmony.fragment.ArtistsFragment;
+import org.mariotaku.harmony.fragment.ArtistAlbumsFragment;
 import org.mariotaku.harmony.fragment.GenresFragment;
 import org.mariotaku.harmony.fragment.TracksFragment;
+import org.mariotaku.harmony.model.AlbumInfo;
 import org.mariotaku.harmony.model.TrackInfo;
+import org.mariotaku.harmony.util.ImageLoaderWrapper;
 import org.mariotaku.harmony.util.PreferencesEditor;
 import org.mariotaku.harmony.util.ServiceWrapper;
-import android.widget.TextView;
-import android.widget.ImageView;
-import org.mariotaku.harmony.util.ImageLoaderWrapper;
-import org.mariotaku.harmony.app.HarmonyApplication;
-import org.mariotaku.harmony.model.AlbumInfo;
-import android.widget.ArrayAdapter;
+import org.mariotaku.harmony.fragment.ArtistsFragment;
 
 public class MusicBrowserActivity extends BaseActivity implements Constants, View.OnClickListener, OnNavigationListener, 
- 		TabListener {
+		TabListener, OnPageChangeListener  {
 
 	private TextView mTrackName;
 	private TextView mTrackDetail;
@@ -125,11 +127,11 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 		mAlbumArt = (ImageView) mControlContainer.findViewById(R.id.album_art);
 		mTrackName = (TextView) mControlContainer.findViewById(R.id.track_name);
 		mTrackDetail = (TextView) mControlContainer.findViewById(R.id.track_detail);
-		mTabsAdapter = new TabsAdapter(getFragmentManager());
-		mViewPager.setOnPageChangeListener(mTabsAdapter);
+		mTabsAdapter = new TabsAdapter(this);
+		mViewPager.setOnPageChangeListener(this);
 		mViewPager.setOffscreenPageLimit(3);
 		mViewPager.setAdapter(mTabsAdapter);
-		configureTabs();
+		configureTabs(!mViewPager.isEnabled());
 		final int currenttab = mPrefs.getIntState(STATE_KEY_PAGE_POSITION_BROWSER, 0);
 		mActionBar.setSelectedNavigationItem(currenttab);
 	}
@@ -158,6 +160,22 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 	}
 
 	@Override
+	public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
+
+	}
+
+	@Override
+	public void onPageScrollStateChanged(int state) {
+
+	}
+
+	@Override
+	public void onPageSelected(int position) {
+		mActionBar.setSelectedNavigationItem(position);
+		mPrefs.setIntState(STATE_KEY_PAGE_POSITION_BROWSER, position);
+	}
+	
+	@Override
 	public void onTabReselected(Tab tab, FragmentTransaction ft) {
 
 	}
@@ -172,12 +190,22 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 
 	}
 	
-	private void configureTabs() {
-		mTabsAdapter.addFragment(new ArtistsFragment(), getString(R.string.artists));
-		mTabsAdapter.addFragment(new AlbumsFragment(), getString(R.string.albums));
-		mTabsAdapter.addFragment(new TracksFragment(), getString(R.string.tracks));
+	private void configureTabs(final boolean horizontal_mode) {
+		if (horizontal_mode) {	
+			addTab(ArtistsFragment.class, getString(R.string.artists));
+		} else {
+			addTab(ArtistAlbumsFragment.class, getString(R.string.artists));
+		}
+		addTab(AlbumsFragment.class, getString(R.string.albums));
+		addTab(TracksFragment.class, getString(R.string.tracks));
 		//mTabsAdapter.addFragment(new PlaylistFragment(), getString(R.string.playlists));
-		mTabsAdapter.addFragment(new GenresFragment(), getString(R.string.genres));
+		addTab(GenresFragment.class, getString(R.string.genres));
+	}
+	
+	private void addTab(final Class<? extends Fragment> clz, final String name) {
+		mTabsAdapter.add(clz);
+		mSpinnerAdapter.add(name);
+		mActionBar.addTab(mActionBar.newTab().setText(name).setTabListener(this));
 	}
 	
 	protected void onCurrentMediaChanged() {
@@ -203,21 +231,18 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 		mImageLoader.displayImage(mAlbumArt, album != null ? album.album_art : null);
 	}
 
-	private class TabsAdapter extends FragmentStatePagerAdapter implements OnPageChangeListener {
+	private static class TabsAdapter extends FragmentStatePagerAdapter {
 		
-		private ArrayList<Fragment> mFragments = new ArrayList<Fragment>();
+		private final ArrayList<Class<? extends Fragment>> mFragments = new ArrayList<Class<? extends Fragment>>();
+		private final Context mContext;
 
-		public TabsAdapter(FragmentManager manager) {
-			super(manager);
+		public TabsAdapter(final Activity activity) {
+			super(activity.getFragmentManager());
+			mContext = activity;
 		}
 
-		public void addFragment(final Fragment fragment, final String name) {
-			mFragments.add(fragment);
-			final Tab tab = mActionBar.newTab();
-			tab.setText(name);
-			tab.setTabListener(MusicBrowserActivity.this);
-			mActionBar.addTab(tab);
-			mSpinnerAdapter.add(name);
+		public void add(final Class<? extends Fragment> clz) {
+			mFragments.add(clz);
 			notifyDataSetChanged();
 		}
 
@@ -228,24 +253,7 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 
 		@Override
 		public Fragment getItem(int position) {
-			return mFragments.get(position);
-		}
-
-
-		@Override
-		public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
-
-		}
-
-		@Override
-		public void onPageScrollStateChanged(int state) {
-
-		}
-
-		@Override
-		public void onPageSelected(int position) {
-			mActionBar.setSelectedNavigationItem(position);
-			mPrefs.setIntState(STATE_KEY_PAGE_POSITION_BROWSER, position);
+			return Fragment.instantiate(mContext, mFragments.get(position).getName());
 		}
 
 	}

@@ -1,16 +1,12 @@
 package org.mariotaku.harmony.model;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.AbstractCursor;
 import android.database.Cursor;
-import android.os.RemoteException;
-import android.provider.MediaStore.*;
-import android.util.Log;
+import android.provider.MediaStore.Audio;
 import java.util.Arrays;
-import org.mariotaku.harmony.activity.TracksBrowserActivity;
-import org.mariotaku.harmony.util.MusicUtils;
 import org.mariotaku.harmony.util.ServiceWrapper;
-import android.content.ContentResolver;
 
 public class QueueCursor extends AbstractCursor {
 

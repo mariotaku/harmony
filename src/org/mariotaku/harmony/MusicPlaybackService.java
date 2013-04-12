@@ -70,6 +70,7 @@ import android.media.audiofx.AudioEffect;
 import android.os.Bundle;
 import org.mariotaku.harmony.model.TrackInfo;
 import java.util.Arrays;
+import android.support.v4.app.NotificationCompat;
 
 /**
  * Provides "background" audio playback capabilities, allowing the user to
@@ -948,10 +949,8 @@ public class MusicPlaybackService extends Service implements Constants {
 	 * Starts playback of a previously opened file.
 	 */
 	public void play() {
-		if (mTrackInfo == null) return;
-
-		CharSequence contentTitle, contentText = null;
-		
+		final TrackInfo track = getTrackInfo();
+		if (track == null) return;
 
 		if (mTelephonyManager.getCallState() == TelephonyManager.CALL_STATE_OFFHOOK) return;
 
@@ -978,29 +977,24 @@ public class MusicPlaybackService extends Service implements Constants {
 			mMediaplayerHandler.removeMessages(FADEDOWN);
 			mMediaplayerHandler.sendEmptyMessage(FADEUP);
 			
-			contentTitle = mTrackInfo.title;
-
-			String artist = mTrackInfo.artist;
-			boolean isUnknownArtist = TrackInfo.isUnknownArtist(mTrackInfo);
-
-			String album = mTrackInfo.album;
-			boolean isUnknownAlbum = TrackInfo.isUnknownAlbum(mTrackInfo);
-
-			if (!isUnknownArtist && !isUnknownAlbum) {
-				contentText = getString(R.string.notification_artist_album, artist, album);
-			} else if (isUnknownArtist && !isUnknownAlbum) {
-				contentText = album;
-			} else if (!isUnknownArtist && isUnknownAlbum) {
-				contentText = artist;
+			final NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+			final NotificationCompat.Style style = new NotificationCompat.BigPictureStyle();
+			builder.setSmallIcon(R.drawable.ic_stat_playback);
+			builder.setContentTitle(track.title);
+			if (!TrackInfo.isUnknownArtist(track)) {
+				builder.setContentText(track.artist);
+			} else if (!TrackInfo.isUnknownAlbum(track)) {
+				builder.setContentText(track.album);
+			} else {
+				builder.setContentText(getString(R.string.unknown_artist));
 			}
+			builder.setStyle(style);
+			builder.setOngoing(true);
+			builder.setOnlyAlertOnce(true);
+			builder.setWhen(0);
+			builder.setContentIntent(PendingIntent.getActivity(this, 0, new Intent(INTENT_PLAYBACK_VIEWER), 0));
 
-			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(INTENT_PLAYBACK_VIEWER),
-					0);
-
-			Notification notification = new Notification(R.drawable.ic_stat_playback, null, 0);
-			//notification.flags = Notification.FLAG_ONGOING_EVENT|Notification.FLAG_ONLY_ALERT_ONCE;
-			notification.setLatestEventInfo(this, contentTitle, contentText, contentIntent);
-			mNotificationManager.notify(ID_NOTIFICATION_PLAYBACK, notification);
+			mNotificationManager.notify(ID_NOTIFICATION_PLAYBACK, builder.getNotification());
 
 			if (!mIsSupposedToBePlaying) {
 				mIsSupposedToBePlaying = true;

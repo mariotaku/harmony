@@ -97,7 +97,7 @@ public class GenresFragment extends BaseListFragment implements LoaderCallbacks<
 		bundle.putLong(Audio.Genres._ID, id);
 
 
-			Intent intent = new Intent(getActivity(), TracksBrowserActivity.class);
+		Intent intent = new Intent(getActivity(), TracksBrowserActivity.class);
 			intent.putExtras(bundle);
 			startActivity(intent);
 	}
@@ -121,7 +121,7 @@ public class GenresFragment extends BaseListFragment implements LoaderCallbacks<
 		@Override
 		public View newView(Context context, Cursor cursor, ViewGroup parent) {
 
-			View view = LayoutInflater.from(context).inflate(R.layout.playlist_list_item, null);
+			View view = LayoutInflater.from(context).inflate(R.layout.playlist_list_item, parent, false);
 			ViewHolder viewholder = new ViewHolder(view);
 			view.setTag(viewholder);
 			return view;

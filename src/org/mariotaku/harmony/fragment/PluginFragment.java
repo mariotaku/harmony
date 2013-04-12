@@ -112,7 +112,7 @@ public class PluginFragment extends ListFragment implements LoaderCallbacks<List
 			ViewHolder viewholder = view != null ? (ViewHolder) view.getTag() : null;
 
 			if (viewholder == null) {
-				view = inflater.inflate(R.layout.playlist_list_item, null);
+				view = inflater.inflate(R.layout.playlist_list_item, parent, false);
 				viewholder = new ViewHolder(view);
 				view.setTag(viewholder);
 			}

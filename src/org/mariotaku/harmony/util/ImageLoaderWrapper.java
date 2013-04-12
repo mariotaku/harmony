@@ -8,6 +8,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import org.mariotaku.harmony.R;
 import android.util.Log;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
+import android.text.TextUtils;
 
 public class ImageLoaderWrapper {
 	
@@ -34,8 +35,8 @@ public class ImageLoaderWrapper {
 	}
 
 	public void displayImage(final ImageView view, final String url) {
-		mImageLoader.displayImage(url != null && url.startsWith("/") ? "file://" + url : url, view,
-				mImageDisplayOptions);
+		final String url_fixed = !TextUtils.isEmpty(url) && url.startsWith("/") ? "file://" + url : url;
+		mImageLoader.displayImage(url_fixed, view, mImageDisplayOptions);
 	}
 	
 }

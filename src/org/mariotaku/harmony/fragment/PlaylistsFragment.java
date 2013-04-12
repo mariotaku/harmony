@@ -140,7 +140,7 @@ public class PlaylistsFragment extends ListFragment implements LoaderCallbacks<C
 		bundle.putLong(MediaStore.Audio.Playlists._ID, playlist_id);
 
 
-			Intent intent = new Intent(getActivity(), TracksBrowserActivity.class);
+		Intent intent = new Intent(getActivity(), TracksBrowserActivity.class);
 			intent.putExtras(bundle);
 			startActivity(intent);
 	}
@@ -200,7 +200,7 @@ public class PlaylistsFragment extends ListFragment implements LoaderCallbacks<C
 					: null;
 
 			if (viewholder == null) {
-				view = inflater.inflate(R.layout.playlist_list_item, null);
+				view = inflater.inflate(R.layout.playlist_list_item, parent, false);
 				viewholder = new ViewHolder(view);
 				view.setTag(new Object[] { viewholder, playlists[position] });
 			}

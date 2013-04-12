@@ -161,17 +161,17 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 	
 	@Override
 	public void onPageSelected(final int position) {
-		mViewPager.setBackgroundColor(position == 1 ? Color.TRANSPARENT : 0x80000000);
+		mAlbumArt.setAlpha(position == 1 ? 1 : 0.5f);
 	}
 
 	@Override
 	public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
 		if (position == 0) {
-			mViewPager.setBackgroundColor(Color.argb((int) (0x80 * (1 - positionOffset)), 0, 0, 0));
+			mAlbumArt.setAlpha(0.5f + 0.5f * positionOffset);
 		} else if (position == 1) {
-			mViewPager.setBackgroundColor(Color.argb((int) (0x80 * positionOffset), 0, 0, 0));
+			mAlbumArt.setAlpha(1 - 0.5f * positionOffset);
 		} else {
-			mViewPager.setBackgroundColor(0x80000000);
+			mAlbumArt.setAlpha(0.5f);
 		}
 	}
 	

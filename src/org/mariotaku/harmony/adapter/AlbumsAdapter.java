@@ -44,7 +44,7 @@ public class AlbumsAdapter extends SimpleCursorAdapter {
 			viewholder.album.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
 		}
 		final String album_art = cursor.getString(mAlbumArtIdx);
-		if (album_art != null && album_art.toString().length() > 0) {
+		if (!TextUtils.isEmpty(album_art)) {
 			mImageLoader.displayImage(viewholder.album_art, album_art);
 		} else {
 			viewholder.album_art.setImageResource(R.drawable.ic_mp_albumart_unknown);

@@ -27,7 +27,7 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.provider.MediaStore.*;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,6 +41,7 @@ import org.mariotaku.harmony.activity.TracksBrowserActivity;
 import org.mariotaku.harmony.model.AlbumInfo;
 import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.ServiceWrapper;
+import org.mariotaku.harmony.util.ArrayUtils;
 
 public class AlbumsFragment extends BaseFragment implements Constants, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener,
 		LoaderManager.LoaderCallbacks<Cursor> {
@@ -56,15 +57,16 @@ public class AlbumsFragment extends BaseFragment implements Constants, AdapterVi
 		mGridView.setAdapter(mAdapter);
 		mGridView.setOnItemClickListener(this);
 		mGridView.setOnItemLongClickListener(this);
-		getLoaderManager().initLoader(0, null, this);
+		getLoaderManager().initLoader(0, getArguments(), this);
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		String[] cols = new String[] { MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM, MediaStore.Audio.Albums.ARTIST,
-			MediaStore.Audio.Albums.ALBUM_ART };
-		Uri uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
-		return new CursorLoader(getActivity(), uri, cols, null, null, MediaStore.Audio.Albums.ALBUM);
+		final String[] cols = new String[] { Audio.Albums._ID, Audio.Albums.ALBUM, Audio.Albums.ARTIST, Audio.Albums.ALBUM_ART };
+		final Uri uri = Audio.Albums.EXTERNAL_CONTENT_URI;
+		final long[] album_ids = args != null ? args.getLongArray(INTENT_KEY_ALBUM_IDS) : null;
+		final String where = album_ids != null ? Audio.Albums._ID + " IN(" + ArrayUtils.toString(album_ids, ',', false) + ")" : null;
+		return new CursorLoader(getActivity(), uri, cols, where, null, Audio.Albums.ALBUM);
 	}
 
 	@Override
@@ -78,7 +80,7 @@ public class AlbumsFragment extends BaseFragment implements Constants, AdapterVi
 	public void onItemClick(AdapterView<?> view, View child, int position, long id) {
 		final Uri.Builder builder = new Uri.Builder();
 		builder.scheme(SCHEME_HARMONY_TRACKS);
-		builder.authority(AUTHORITY_ALBUM);
+		builder.authority(AUTHORITY_ALBUMS);
 		builder.appendPath(String.valueOf(id));
 		final Intent intent = new Intent(Intent.ACTION_VIEW, builder.build());
 		intent.setClass(getActivity(), TracksBrowserActivity.class);
