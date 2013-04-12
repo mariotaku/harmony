@@ -74,6 +74,8 @@ import android.support.v4.app.NavUtils;
 public class MusicPlaybackActivity extends BaseActivity implements Constants, View.OnClickListener, SeekBar.OnSeekBarChangeListener,
 ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRelativeLayout.TouchInterceptor, ActionBar.OnMenuVisibilityListener {
 
+ 	private static final float ALBUM_ART_ALPHA_INACTIVE = 0.3f;
+ 
 	private static final int REQUEST_EQUALIZER = 1;
 
 	private ActionBar mActionBar;
@@ -161,17 +163,17 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 	
 	@Override
 	public void onPageSelected(final int position) {
-		mAlbumArt.setAlpha(position == 1 ? 1 : 0.5f);
+		mAlbumArt.setAlpha(position == 1 ? 1 : ALBUM_ART_ALPHA_INACTIVE);
 	}
 
 	@Override
 	public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
 		if (position == 0) {
-			mAlbumArt.setAlpha(0.5f + 0.5f * positionOffset);
+			mAlbumArt.setAlpha(ALBUM_ART_ALPHA_INACTIVE + (1.0f - ALBUM_ART_ALPHA_INACTIVE) * positionOffset);
 		} else if (position == 1) {
-			mAlbumArt.setAlpha(1 - 0.5f * positionOffset);
+			mAlbumArt.setAlpha(1.0f - (1.0f - ALBUM_ART_ALPHA_INACTIVE) * positionOffset);
 		} else {
-			mAlbumArt.setAlpha(0.5f);
+			mAlbumArt.setAlpha(ALBUM_ART_ALPHA_INACTIVE);
 		}
 	}
 	

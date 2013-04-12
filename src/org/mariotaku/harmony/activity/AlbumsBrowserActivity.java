@@ -29,11 +29,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
 import org.mariotaku.harmony.Constants;
-import org.mariotaku.harmony.fragment.AlbumTracksFragment;
-import org.mariotaku.harmony.fragment.ArtistTracksFragment;
-import org.mariotaku.harmony.util.ServiceWrapper;
-import org.mariotaku.harmony.util.ArrayUtils;
 import org.mariotaku.harmony.fragment.AlbumsFragment;
+import org.mariotaku.harmony.fragment.ArtistAlbumsFragment;
+import org.mariotaku.harmony.util.ArrayUtils;
+import org.mariotaku.harmony.util.ServiceWrapper;
 
 public class AlbumsBrowserActivity extends BaseActivity implements Constants {
 
@@ -43,13 +42,10 @@ public class AlbumsBrowserActivity extends BaseActivity implements Constants {
 
 	private ActionBar mActionBar;
 
-
 	static {
 		URI_MATCHER.addURI(AUTHORITY_IDS, "*", URI_CODE_ALBUMS);
-		//URI_MATCHER.addURI(AUTHORITY_ARTISTS, "*", URI_CODE_ARTIST_ALBUMS);
+		URI_MATCHER.addURI(AUTHORITY_ARTISTS, "*", URI_CODE_ARTIST_ALBUMS);
 	}
-
-	private Uri mUri;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -66,6 +62,13 @@ public class AlbumsBrowserActivity extends BaseActivity implements Constants {
 				fragment = new AlbumsFragment();
 				final long[] ids = ArrayUtils.fromString(uri.getLastPathSegment(), ',');
 				args.putLongArray(INTENT_KEY_ALBUM_IDS, ids);
+				fragment.setArguments(args);
+				break;
+			}
+			case URI_CODE_ARTIST_ALBUMS: {
+				fragment = new ArtistAlbumsFragment();
+				final long[] ids = ArrayUtils.fromString(uri.getLastPathSegment(), ',');
+				args.putLongArray(INTENT_KEY_ARTIST_IDS, ids);
 				fragment.setArguments(args);
 				break;
 			}

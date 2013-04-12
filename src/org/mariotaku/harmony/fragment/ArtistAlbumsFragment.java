@@ -20,41 +20,51 @@
 
 package org.mariotaku.harmony.fragment;
 
-import android.app.LoaderManager;
+import android.app.LoaderManager.LoaderCallbacks;
+import android.content.ContentResolver;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.provider.BaseColumns;
 import android.provider.MediaStore.Audio;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnChildClickListener;
+import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.Toast;
 import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
-import org.mariotaku.harmony.adapter.ArtistAlbumsAdapter;
 import org.mariotaku.harmony.activity.TracksBrowserActivity;
+import org.mariotaku.harmony.adapter.ArtistAlbumsAdapter;
 import org.mariotaku.harmony.model.AlbumInfo;
 import org.mariotaku.harmony.model.ArtistInfo;
 import org.mariotaku.harmony.model.TrackInfo;
-import org.mariotaku.harmony.util.ServiceWrapper;
-import android.content.ContentResolver;
-import android.provider.BaseColumns;
 import org.mariotaku.harmony.util.ArrayUtils;
+import org.mariotaku.harmony.util.ServiceWrapper;
 import org.mariotaku.harmony.util.Utils;
 
-public class ArtistAlbumsFragment extends BaseFragment implements Constants, LoaderManager.LoaderCallbacks<Cursor>, ExpandableListView.OnChildClickListener,
-		ArtistAlbumsAdapter.OnChildLongClickListener, AdapterView.OnItemLongClickListener {
+public class ArtistAlbumsFragment extends BaseFragment implements Constants, LoaderCallbacks<Cursor>, OnChildClickListener,
+ArtistAlbumsAdapter.OnChildLongClickListener, OnItemLongClickListener, OnGroupClickListener {
+
+	public boolean onGroupClick(ExpandableListView view, View child, int groupPos, long groupId) {
+		return mShouldExpandChild;
+	}
+	
+	
 
 	private ArtistAlbumsAdapter mAdapter;
 	private ExpandableListView mListView;
 	private ServiceWrapper mService;
 	private ContentResolver mResolver;
+
+	private boolean mShouldExpandChild;
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -63,7 +73,10 @@ public class ArtistAlbumsFragment extends BaseFragment implements Constants, Loa
 		mAdapter = new ArtistAlbumsAdapter(getActivity(), mListView, this, this);
 		mListView.setAdapter(mAdapter);
 		mListView.setOnItemLongClickListener(this);
-		getLoaderManager().initLoader(0, null, this);
+		mListView.setOnGroupClickListener(this);
+		final Bundle args = getArguments();
+		mShouldExpandChild = args != null && args.getLongArray(INTENT_KEY_ARTIST_IDS) != null;
+		getLoaderManager().initLoader(0, args, this);
 	}
 	
 	@Override
@@ -102,8 +115,9 @@ public class ArtistAlbumsFragment extends BaseFragment implements Constants, Loa
 		final String[] cols = new String[] { Audio.Artists._ID, Audio.Artists.ARTIST,
 				Audio.Artists.NUMBER_OF_ALBUMS, Audio.Artists.NUMBER_OF_TRACKS };
 		final Uri uri = Audio.Artists.EXTERNAL_CONTENT_URI;
-		return new CursorLoader(getActivity(), uri, cols, null, null,
-				Audio.Artists.DEFAULT_SORT_ORDER);
+		final long[] artist_ids = args != null ? args.getLongArray(INTENT_KEY_ARTIST_IDS) : null;
+		final String where = artist_ids != null ? Audio.Artists._ID + " IN(" + ArrayUtils.toString(artist_ids, ',', false) + ")" : null;
+		return new CursorLoader(getActivity(), uri, cols, where, null, Audio.Artists.ARTIST);
 	}
 
 	@Override
@@ -132,6 +146,12 @@ public class ArtistAlbumsFragment extends BaseFragment implements Constants, Loa
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 		mAdapter.changeCursor(data);
+		if (mShouldExpandChild) {
+			final int count = mAdapter.getGroupCount();
+			for (int i = 0; i < count; i++) {
+				mListView.expandGroup(i);
+			}
+		}
 	}
 
 	@Override

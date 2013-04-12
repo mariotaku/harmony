@@ -2,9 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:descendantFocusability="blocksDescendants"
-	android:padding="8dp"
-	android:gravity="center">
+	android:gravity="center"
+	android:background="@drawable/album_item_shadow">
 
 	<org.mariotaku.harmony.view.ArtistAlbumsStackView
 		android:id="@android:id/icon"

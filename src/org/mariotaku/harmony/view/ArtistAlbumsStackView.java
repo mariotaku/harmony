@@ -1,4 +1,15 @@
 package org.mariotaku.harmony.view;
+
+import org.mariotaku.harmony.Constants;
+import org.mariotaku.harmony.R;
+import org.mariotaku.harmony.app.HarmonyApplication;
+import org.mariotaku.harmony.util.ImageLoaderWrapper;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -6,42 +17,52 @@ import android.net.Uri;
 import android.provider.MediaStore.Audio;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.StackView;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import org.mariotaku.harmony.Constants;
-import org.mariotaku.harmony.R;
-import org.mariotaku.harmony.adapter.ArrayAdapter;
-import org.mariotaku.harmony.app.HarmonyApplication;
-import org.mariotaku.harmony.util.ImageLoaderWrapper;
-import org.mariotaku.harmony.util.ListUtils;
 
-public class ArtistAlbumsStackView extends StackView implements Constants {
+public final class ArtistAlbumsStackView extends FrameLayout implements Constants {
 
 	private static final int STACK_ITEM_COUNT = 3;
 	private static final Map<Long, String[]> ALBUMS_CACHE = new LinkedHashMap<Long, String[]>(48);
 
-	private ExecutorService mExecutor = Executors.newFixedThreadPool(8);
+	private ExecutorService mExecutor;
+	private final ContentResolver mResolver;
+	private final ImageLoaderWrapper mImageLoader;
 
 	private long mArtistId;
+	private String[] mArts;
 
-	private final AlbumArtsAdapter mAdapter;	
-	private final ContentResolver mResolver;
 	
-	public ArtistAlbumsStackView(Context context, AttributeSet attrs) {
+	public ArtistAlbumsStackView(final Context context, final AttributeSet attrs) {
 		this(context, attrs, 0);
 	}
 	
-	public ArtistAlbumsStackView(Context context, AttributeSet attrs, int defStyle) {
+	public ArtistAlbumsStackView(final Context context, final AttributeSet attrs, final int defStyle) {
 		super(context, attrs, defStyle);
+		mExecutor = Executors.newFixedThreadPool(8);
 		mResolver = context.getContentResolver();
-		setAdapter(mAdapter = new AlbumArtsAdapter(context));
+		mImageLoader = HarmonyApplication.getInstance(context).getImageLoaderWrapper();
+		for (int i = 0; i < STACK_ITEM_COUNT; i++) {
+			final ItemView v = new ItemView(context);
+			final int gravity;
+			if (i == 0) {
+				gravity = Gravity.TOP|Gravity.RIGHT;
+			} else if (i == STACK_ITEM_COUNT - 1) {
+				gravity = Gravity.BOTTOM|Gravity.LEFT;
+			} else {
+				gravity = Gravity.CENTER;
+			}
+			final LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, gravity);
+			addView(v, lp);
+			v.setBackgroundResource(R.drawable.album_item_shadow);
+		}
+	}
+	
+	public final long getArtistId() {
+		return mArtistId;
 	}
 
 	@Override
@@ -55,21 +76,33 @@ public class ArtistAlbumsStackView extends StackView implements Constants {
 	}
 	
 	public synchronized void showAlbums(long id) {
-		if (!mAdapter.isEmpty() && id == mArtistId) return;
+		if (mArts != null && id == mArtistId) return;
 		mArtistId = id;
-		mAdapter.clear();
+		mArts = null;
 		final int child_count = getChildCount();
 		for (int i = 0; i < child_count; i++) {
-			final ImageView v = (ImageView) getChildAt(i).findViewById(android.R.id.icon);
+			final ImageView v = (ImageView) getChildAt(i);
 			if (v != null) {
 				v.setImageDrawable(null);
 			}
 		}
 		if (ALBUMS_CACHE.containsKey(id)) {
-			mAdapter.addAll(ListUtils.fromArray(ALBUMS_CACHE.get(id)));
+			mArts = ALBUMS_CACHE.get(id);
+			final int size = Math.min(mArts.length, getChildCount());
+			for (int i = 0; i < size; i ++) {
+				final ImageView v = (ImageView) getChildAt(size - 1 - i);
+				if (v != null) {
+					final String art = mArts[i];
+					if (!TextUtils.isEmpty(art)) {
+						mImageLoader.displayImage(v, art);
+					} else {
+						v.setImageResource(R.drawable.ic_mp_albumart_unknown);
+					}
+				}
+			}
 			return;
 		}
-		mExecutor.execute(new LoadAlbumsRunnable(id));
+		mExecutor.execute(new LoadAlbumsRunnable(this, id));
 	}
 	
 	@Override
@@ -92,21 +125,57 @@ public class ArtistAlbumsStackView extends StackView implements Constants {
 			}
 		}
 	}
-	
-	class LoadAlbumsRunnable implements Runnable {
 
-		final long id;
+	private static class ItemView extends ImageView {
+
+		private static final float SCALE_FACTOR = 0.9f;
+
+		private ItemView(final Context context) {
+			super(context);
+		}
+
+		@Override
+		protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
+			final int width = (int) (MeasureSpec.getSize(widthMeasureSpec) * SCALE_FACTOR), height = (int) (MeasureSpec.getSize(heightMeasureSpec) * SCALE_FACTOR);
+			final int wMode = MeasureSpec.getMode(widthMeasureSpec), hMode = MeasureSpec.getMode(heightMeasureSpec);
+			final int wSpec = MeasureSpec.makeMeasureSpec(width, wMode), hSpec = MeasureSpec.makeMeasureSpec(height, hMode);
+			final ViewGroup.LayoutParams lp = getLayoutParams();
+			if (lp.height == ViewGroup.LayoutParams.MATCH_PARENT && lp.width == ViewGroup.LayoutParams.WRAP_CONTENT) {
+				super.onMeasure(hSpec, hSpec);
+				setMeasuredDimension(height, height);
+			} else if (lp.width == ViewGroup.LayoutParams.MATCH_PARENT && lp.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
+				super.onMeasure(wSpec, wSpec);
+				setMeasuredDimension(width, width);
+			} else {
+				if (width > height) {
+					super.onMeasure(hSpec, hSpec);
+					setMeasuredDimension(height, height);
+				} else {
+					super.onMeasure(wSpec, wSpec);
+					setMeasuredDimension(width, width);
+				}
+			}
+		}
+
+	}
+	
+	private static class LoadAlbumsRunnable implements Runnable {
+
+		private final ArtistAlbumsStackView view;		
+		private final long id;
 		
-		LoadAlbumsRunnable(long id) {
+		private LoadAlbumsRunnable(final ArtistAlbumsStackView view, final long id) {
+			this.view = view;
 			this.id = id;
 		}
 		
+		@Override
 		public void run() {
 			final Uri uri = Audio.Artists.Albums.getContentUri(EXTERNAL_VOLUME, id);
 			final String[] cols = new String[] { Audio.Albums.ALBUM_ART };
 			final String where = Audio.Artists.Albums.ALBUM_ART + " NOT NULL";
 			final String order = Audio.Artists.Albums.ALBUM;
-			final Cursor c = mResolver.query(uri, cols, where, null, order);
+			final Cursor c = view.mResolver.query(uri, cols, where, null, order);
 			final int count = Math.min(STACK_ITEM_COUNT, c != null ? c.getCount() : -1);
 			final String[] arts = new String[STACK_ITEM_COUNT];
 			if (count > 0) {
@@ -124,51 +193,29 @@ public class ArtistAlbumsStackView extends StackView implements Constants {
 				c.close();
 			}
 			ALBUMS_CACHE.put(id, arts);
-			if (id == mArtistId) {
-				post(new AddAlbumArtRunnable(id));
-			}
+			if (id != view.getArtistId()) return;
+			view.post(new ShowAlbumsRunnable(view, id));
 		}
-		
 		
 	}
 	
-	class AddAlbumArtRunnable implements Runnable {
+	private static class ShowAlbumsRunnable implements Runnable {
 
-		final long id;
+		private final ArtistAlbumsStackView view;
+		private final long id;
 		
-		AddAlbumArtRunnable(long id) {
+		ShowAlbumsRunnable(final ArtistAlbumsStackView view, final long id) {
+			this.view = view;
 			this.id = id;
 		}
 		
 		@Override
 		public void run() {
-			if (mArtistId == id) {
-				showAlbums(id);
-			}
+			// If view was recycled, do nothing.
+			if (view.getArtistId() != id) return;
+			view.showAlbums(id);
 		}
 		
 	}
-	
-	private static class AlbumArtsAdapter extends ArrayAdapter<String> {
 
-		private ImageLoaderWrapper mImageLoader;
-		AlbumArtsAdapter(Context context) {
-			super(context, R.layout.artist_albums_stack_item);
-			mImageLoader = HarmonyApplication.getInstance(context).getImageLoaderWrapper();
-		}
-		
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			final View view = super.getView(position, convertView, parent);
-			final ImageView image = (ImageView) view.findViewById(android.R.id.icon);
-			final String art = position >= 0 && position < getCount() ? getItem(position) : null;
-			if (!TextUtils.isEmpty(art)) {
-				mImageLoader.displayImage(image, art);
-			} else {
-				image.setImageResource(R.drawable.ic_mp_albumart_unknown);
-			}
-			return view;
-		}
-		
-	}
 }

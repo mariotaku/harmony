@@ -191,11 +191,11 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 	}
 	
 	private void configureTabs(final boolean horizontal_mode) {
-		if (horizontal_mode) {	
+		//if (horizontal_mode) {	
 			addTab(ArtistsFragment.class, getString(R.string.artists));
-		} else {
-			addTab(ArtistAlbumsFragment.class, getString(R.string.artists));
-		}
+		//} else {
+		//	addTab(ArtistAlbumsFragment.class, getString(R.string.artists));
+		//}
 		addTab(AlbumsFragment.class, getString(R.string.albums));
 		addTab(TracksFragment.class, getString(R.string.tracks));
 		//mTabsAdapter.addFragment(new PlaylistFragment(), getString(R.string.playlists));

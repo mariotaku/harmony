@@ -48,8 +48,6 @@ public class TracksBrowserActivity extends BaseActivity implements Constants {
 		URI_MATCHER.addURI(AUTHORITY_ARTISTS, "*", URI_CODE_ARTIST_TRACKS);
 	}
  
-	private Uri mUri;
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

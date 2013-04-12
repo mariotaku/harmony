@@ -33,12 +33,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
-import org.mariotaku.harmony.Constants;
 import org.mariotaku.harmony.R;
+import org.mariotaku.harmony.activity.AlbumsBrowserActivity;
 import org.mariotaku.harmony.adapter.ArtistsAdapter;
-import org.mariotaku.harmony.activity.TracksBrowserActivity;
-import org.mariotaku.harmony.model.AlbumInfo;
 import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.ServiceWrapper;
 
@@ -78,10 +75,10 @@ LoaderManager.LoaderCallbacks<Cursor> {
 	public void onItemClick(AdapterView<?> view, View child, int position, long id) {
 		final Uri.Builder builder = new Uri.Builder();
 		builder.scheme(SCHEME_HARMONY_ALBUMS);
-		builder.authority(AUTHORITY_ALBUMS);
+		builder.authority(AUTHORITY_ARTISTS);
 		builder.appendPath(String.valueOf(id));
 		final Intent intent = new Intent(Intent.ACTION_VIEW, builder.build());
-		intent.setClass(getActivity(), TracksBrowserActivity.class);
+		intent.setClass(getActivity(), AlbumsBrowserActivity.class);
 		startActivity(intent);
 	}	
 
