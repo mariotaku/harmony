@@ -37,7 +37,7 @@
 		android:layout_width="match_parent"
 		android:layout_height="@dimen/music_playback_control_buttons_height">
 
-		<org.mariotaku.harmony.widget.RepeatingImageButton
+		<org.mariotaku.harmony.view.RepeatingImageButton
 			android:id="@+id/prev"
 			android:layout_width="wrap_content"
 			android:layout_height="match_parent"
@@ -57,7 +57,7 @@
 			android:src="@drawable/btn_playback_ic_play"
 			style="?android:attr/borderlessButtonStyle"/>
 
-		<org.mariotaku.harmony.widget.RepeatingImageButton
+		<org.mariotaku.harmony.view.RepeatingImageButton
 			android:id="@+id/next"
 			android:layout_width="wrap_content"
 			android:layout_height="match_parent"

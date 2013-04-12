@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.mariotaku.harmony.widget;
+package org.mariotaku.harmony.view;
 
 import android.content.Context;
 import android.os.SystemClock;
