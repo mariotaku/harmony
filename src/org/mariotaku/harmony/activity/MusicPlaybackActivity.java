@@ -20,59 +20,58 @@
 
 package org.mariotaku.harmony.activity;
 
+import org.mariotaku.harmony.Constants;
+import org.mariotaku.harmony.R;
+import org.mariotaku.harmony.activity.BaseActivity;
+import org.mariotaku.harmony.app.HarmonyApplication;
+import org.mariotaku.harmony.fragment.LyricsFragment;
+import org.mariotaku.harmony.fragment.QueueFragment;
+import org.mariotaku.harmony.model.AlbumInfo;
+import org.mariotaku.harmony.model.TrackInfo;
+import org.mariotaku.harmony.util.ImageLoaderWrapper;
+import org.mariotaku.harmony.util.MusicUtils;
+import org.mariotaku.harmony.util.PreferencesEditor;
+import org.mariotaku.harmony.util.ServiceWrapper;
+import org.mariotaku.harmony.util.Utils;
+import org.mariotaku.harmony.view.AlbumArtView;
+import org.mariotaku.harmony.view.ExtendedRelativeLayout;
+import org.mariotaku.harmony.view.RepeatingImageButton;
+
+import java.util.ArrayList;
+ 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.audiofx.AudioEffect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
+import android.view.ViewGroup;
 import android.view.WindowManager.LayoutParams;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.util.ArrayList;
-import org.mariotaku.harmony.Constants;
-import org.mariotaku.harmony.R;
-import org.mariotaku.harmony.activity.BaseActivity;
-import org.mariotaku.harmony.model.TrackInfo;
-import org.mariotaku.harmony.util.MusicUtils;
-import org.mariotaku.harmony.util.PreferencesEditor;
-import org.mariotaku.harmony.util.ServiceWrapper;
-import org.mariotaku.harmony.view.RepeatingImageButton;
-import org.mariotaku.harmony.view.RepeatingImageButton.RepeatListener;
-import org.mariotaku.harmony.model.AlbumInfo;
-import org.mariotaku.harmony.util.ImageLoaderWrapper;
-import android.widget.ImageView;
-import android.text.TextUtils;
-import org.mariotaku.harmony.app.HarmonyApplication;
-import org.mariotaku.harmony.fragment.LyricsFragment;
-import android.content.Context;
-import android.app.Activity;
-import org.mariotaku.harmony.fragment.QueueFragment;
-import org.mariotaku.harmony.view.ExtendedRelativeLayout;
-import android.view.ViewGroup;
-import android.view.MotionEvent;
-import org.mariotaku.harmony.util.Utils;
-import android.support.v4.app.NavUtils;
+import android.view.GestureDetector;
 
 public class MusicPlaybackActivity extends BaseActivity implements Constants, View.OnClickListener, SeekBar.OnSeekBarChangeListener,
-ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRelativeLayout.TouchInterceptor, ActionBar.OnMenuVisibilityListener {
+ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRelativeLayout.TouchInterceptor, ActionBar.OnMenuVisibilityListener,
+GestureDetector.OnGestureListener {
 
  	private static final float ALBUM_ART_ALPHA_INACTIVE = 0.3f;
  
@@ -98,7 +97,7 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 	private TextView mTrackName, mTrackDetail;
 	private TextView mCurrentTime, mTotalTime;
 	private SeekBar mSeekBar;
-	private ImageView mAlbumArt;
+	private AlbumArtView mAlbumArt;
 	private ViewPager mViewPager;
 	private RepeatingImageButton mPrevButton, mNextButton;
 	private ImageButton mPlayPauseButton;
@@ -112,9 +111,13 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 
 	private final Handler mHandler = new Handler();
 	private Runnable mRefreshRunnable, mHideActionBarRunnable;
+
+	private GestureDetector mGestureDector;
 	
 	@Override
-	public void dispatchTouchEvent(final ViewGroup view, final MotionEvent event) {
+	public boolean dispatchTouchEvent(final ViewGroup view, final MotionEvent event) {
+		mGestureDector.onTouchEvent(event);
+		return false;
 	}
 	
 
@@ -134,19 +137,38 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 			}
 		}
 	}	
-
-	@Override
-	public boolean onInterceptTouchEvent(ViewGroup view, MotionEvent event) {
-		if (event.getAction() == MotionEvent.ACTION_DOWN) {
-			mActionBar.show();
-			mHandler.removeCallbacks(mHideActionBarRunnable);
-			if (!mIsShowingMenu) {
-				mHandler.postDelayed(mHideActionBarRunnable, 3000);
-			}
-		}
+	public boolean onDown(MotionEvent e) {
+		return false;
+	}
+	
+	public boolean onFling(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
 		return false;
 	}
 
+	public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+		return false;
+	}
+	
+	public void onShowPress(MotionEvent e) {
+	}
+
+	public boolean onSingleTapUp(MotionEvent e) {
+		mActionBar.show();
+		mHandler.removeCallbacks(mHideActionBarRunnable);
+		if (!mIsShowingMenu) {
+			mHandler.postDelayed(mHideActionBarRunnable, 3000);
+		}
+		return true;
+	}
+
+	@Override
+	public boolean onInterceptTouchEvent(ViewGroup view, MotionEvent event) {
+		return false;
+	}
+
+	public void onLongPress(MotionEvent event) {
+	}
+	
 	@Override
 	public void onMenuVisibilityChanged(boolean visible) {
 		mIsShowingMenu = visible;
@@ -163,7 +185,7 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 	
 	@Override
 	public void onPageSelected(final int position) {
-		mAlbumArt.setAlpha(position == 1 ? 1 : ALBUM_ART_ALPHA_INACTIVE);
+		mAlbumArt.setAlpha(position != 1 && mAdapter.getCount() >= 3 ? ALBUM_ART_ALPHA_INACTIVE : 1.0f);
 	}
 
 	@Override
@@ -249,6 +271,7 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 		mNextButton.setRepeatListener(this, 260);
 
 		mDeviceHasDpad = getResources().getConfiguration().navigation == Configuration.NAVIGATION_DPAD;
+		mGestureDector = new GestureDetector(this, this);
 		mPlaybackContainer.setTouchInterceptor(this);
 
 		mAdapter = new PagerAdapter(this);
@@ -564,6 +587,7 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 	@Override
 	protected void onStop() {
 		mPaused = true;
+		mAlbumArt.loadAlbumArt(null);
 		mPreferences.setIntState(STATE_KEY_PAGE_POSITION_PLAYBACK, mViewPager.getCurrentItem());
 		getWindow().clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
 		super.onStop();
@@ -597,7 +621,7 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 	public void onContentChanged() {
 		super.onContentChanged();
 		mPlaybackContainer = (ExtendedRelativeLayout) findViewById(R.id.music_playback);
-		mAlbumArt = (ImageView) findViewById(R.id.album_art);
+		mAlbumArt = (AlbumArtView) findViewById(R.id.album_art);
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mTrackName = (TextView) findViewById(R.id.track_name);
 		mTrackDetail = (TextView) findViewById(R.id.track_detail);
@@ -764,7 +788,6 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 		if (mService == null) return;
 		final TrackInfo track = mService.getTrackInfo();
 		if (track == null) return;
-		final AlbumInfo album = AlbumInfo.getAlbumInfo(this, track);
 		mTrackName.setText(track.title);
 		if (!TrackInfo.isUnknownArtist(track)) {
 			mTrackDetail.setText(track.artist);
@@ -776,7 +799,7 @@ ViewPager.OnPageChangeListener, RepeatingImageButton.RepeatListener, ExtendedRel
 		mSeekBar.setProgress(0);
 		mDuration = mService.getDuration();
 		mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
-		mImageLoader.displayImage(mAlbumArt, album != null ? album.album_art : null);
+		mAlbumArt.loadAlbumArt(track);
 	}
 	
 	private boolean useDpadMusicControl() {

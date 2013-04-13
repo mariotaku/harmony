@@ -55,6 +55,7 @@ public class LyricsAdapter extends ArrayAdapter<Lyrics.Line> {
 
 	public void loadLyrics(final Lyrics lyrics) {
 		clear();
+		mCurrentPosition = -1;
 		if (lyrics == null) return;
 		addAll(ListUtils.fromArray(lyrics.getAll()));
 	}

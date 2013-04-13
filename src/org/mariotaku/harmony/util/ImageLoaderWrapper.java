@@ -22,7 +22,7 @@ public class ImageLoaderWrapper {
 		builder.cacheOnDisc();
 		builder.showStubImage(R.drawable.ic_mp_albumart_unknown);
 		builder.bitmapConfig(Bitmap.Config.ARGB_8888);
-		builder.displayer(new FadeInBitmapDisplayer(400));
+		//builder.displayer(new FadeInBitmapDisplayer(400));
 		mImageDisplayOptions = builder.build();
 	}
 

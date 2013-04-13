@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <merge xmlns:android="http://schemas.android.com/apk/res/android">
 
-	<ImageView
+	<org.mariotaku.harmony.view.AlbumArtView
 		android:id="@+id/album_art"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:scaleType="centerCrop"/>
+		android:layout_height="match_parent"/>
 
 	<org.mariotaku.harmony.view.ExtendedViewPager3D
 		android:id="@+id/pager"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent"/>
-		
-	<View
-		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		android:background="@drawable/pager_shadow"/>
+
 </merge>
 

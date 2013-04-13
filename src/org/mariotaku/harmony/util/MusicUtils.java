@@ -1301,7 +1301,8 @@ public class MusicUtils implements Constants {
 			if (force_shuffle) {
 				service.setShuffleMode(SHUFFLE_MODE_ALL);
 			}
-			long curid = service.getTrackInfo().id;
+			final TrackInfo track = service.getTrackInfo();
+			long curid = track != null ? track.id : -1;
 			int curpos = service.getQueuePosition();
 			if (position != -1 && curpos == position && curid == list[position]) {
 				// The selected file is the file that's currently playing;

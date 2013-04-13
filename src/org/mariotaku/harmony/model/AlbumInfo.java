@@ -39,7 +39,7 @@ public class AlbumInfo {
 
 	@Override
 	public String toString() {
-		return "AlbumInfo{album=" + album + ",album_id=" + album_id + ",artist=" + artist + ",album_art,"
+		return "AlbumInfo{album=" + album + ",album_id=" + album_id + ",artist=" + artist + ",album_art="
 			+ album_art + "}";
 	}
 	

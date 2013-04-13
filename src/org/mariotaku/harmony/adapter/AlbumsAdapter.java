@@ -38,7 +38,7 @@ public class AlbumsAdapter extends SimpleCursorAdapter {
 		final boolean unknown_artist = TextUtils.isEmpty(artist) || MediaStore.UNKNOWN_STRING.equals(artist);
 		viewholder.album.setText(unknown_album ? context.getString(R.string.unknown_album) : album);
 		viewholder.artist.setText(unknown_artist ? context.getString(R.string.unknown_artist) : artist);
-		if (mCurrentAlbumId == cursor.getLong(mIdIdx)) {
+		if (mCurrentAlbumId >=0 && mCurrentAlbumId == cursor.getLong(mIdIdx)) {
 			viewholder.album.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_indicator_nowplaying_small, 0);
 		} else {
 			viewholder.album.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);

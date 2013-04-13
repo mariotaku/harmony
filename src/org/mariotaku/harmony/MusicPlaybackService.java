@@ -20,20 +20,6 @@
 
 package org.mariotaku.harmony;
 
-import java.io.FileDescriptor;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Random;
-import java.util.Vector;
-
-import org.mariotaku.harmony.util.LyricsParser;
-import org.mariotaku.harmony.util.MusicUtils;
-import org.mariotaku.harmony.util.PreferencesEditor;
-
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -49,28 +35,35 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.media.MediaPlayer;
+import android.media.audiofx.AudioEffect;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.os.RemoteException;
 import android.os.SystemClock;
 import android.provider.MediaStore;
+import android.support.v4.app.NotificationCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.widget.Toast;
-import android.media.audiofx.AudioEffect;
-import android.os.Bundle;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.Calendar;
+import java.util.Random;
+import java.util.Vector;
 import org.mariotaku.harmony.model.TrackInfo;
-import java.util.Arrays;
-import android.support.v4.app.NotificationCompat;
+import org.mariotaku.harmony.util.MusicUtils;
+import org.mariotaku.harmony.util.PreferencesEditor;
+import android.content.res.Resources;
+import org.mariotaku.harmony.model.AlbumInfo;
 
 /**
  * Provides "background" audio playback capabilities, allowing the user to
@@ -366,6 +359,8 @@ public class MusicPlaybackService extends Service implements Constants {
 	};
 	private final IBinder mBinder = new ServiceStub(this);
 
+	private Resources mResources;
+
 	public MusicPlaybackService() {
 
 	}
@@ -655,6 +650,7 @@ public class MusicPlaybackService extends Service implements Constants {
 		super.onCreate();
 		// Needs to be done in this thread, since otherwise
 		// ApplicationContext.getPowerManager() crashes.
+		mResources = getResources();
 		mPlayer = new MultiPlayer(this);
 		mResolver = getContentResolver();
 		mPlayer.setHandler(mMediaplayerHandler);
@@ -988,6 +984,8 @@ public class MusicPlaybackService extends Service implements Constants {
 			} else {
 				builder.setContentText(getString(R.string.unknown_artist));
 			}
+			final AlbumInfo album = AlbumInfo.getAlbumInfo(this, track);
+			builder.setLargeIcon(getAlbumArtForNotification(album != null ? album.album_art : null));
 			builder.setStyle(style);
 			builder.setOngoing(true);
 			builder.setOnlyAlertOnce(true);
@@ -1007,6 +1005,32 @@ public class MusicPlaybackService extends Service implements Constants {
 			// something.
 			setShuffleMode(SHUFFLE_MODE_ALL);
 		}
+	}
+	
+	private Bitmap getAlbumArtForNotification(final String path) {
+		if (path == null) return null;
+		final BitmapFactory.Options opts = new BitmapFactory.Options();
+		opts.inJustDecodeBounds = true;
+		BitmapFactory.decodeFile(path, opts);
+		final float bmp_size = Math.max(opts.outWidth, opts.outHeight);
+		if (bmp_size == 0) return null;
+		final int width = mResources.getDimensionPixelSize(android.R.dimen.notification_large_icon_width);
+		final int height = mResources.getDimensionPixelSize(android.R.dimen.notification_large_icon_height);
+		opts.inSampleSize = (int) Math.floor(bmp_size / Math.max(width, height));
+		opts.inJustDecodeBounds = false;
+		final Bitmap bitmap = BitmapFactory.decodeFile(path, opts);
+		if (bitmap == null) return null;
+		final Bitmap scaled;
+		if (bitmap.getWidth() > bitmap.getHeight()) {
+			scaled = Bitmap.createScaledBitmap(bitmap, height * bitmap.getWidth() / bitmap.getHeight(), height, true);
+		} else {
+			scaled = Bitmap.createScaledBitmap(bitmap, width, width * bitmap.getHeight() / bitmap.getWidth(), true);
+		}
+		bitmap.recycle();
+		final int x = Math.max(0, (scaled.getWidth() - width) / 2), y = Math.max(0, (scaled.getHeight() - height) / 2);
+		final Bitmap cropped = Bitmap.createBitmap(scaled, x, y, Math.min(width, scaled.getWidth()), Math.min(height, scaled.getHeight()));
+		scaled.recycle();
+		return cropped;
 	}
 
 	/**

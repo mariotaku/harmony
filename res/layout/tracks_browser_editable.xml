@@ -12,6 +12,7 @@
 	dslv:dragScrollStart="0.33"
 	dslv:maxDragScrollSpeed="0.5"
 	dslv:floatAlpha="0.6"
+	dslv:removeEnabled="false"
 	dslv:slideShuffleSpeed="0.3"
 	dslv:sortEnabled="true"
 	dslv:trackDragSort="true"

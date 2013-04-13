@@ -4,16 +4,6 @@
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
 
-	<FrameLayout
-		android:id="@+id/info_container"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_alignParentTop="true"
-		android:layout_toRightOf="@+id/pager_container">
-
-		<include layout="@layout/music_playback_info"/>
-	</FrameLayout>
-
 	<org.mariotaku.harmony.view.SquareFrameLayout
 		android:id="@+id/pager_container"
 		android:layout_width="wrap_content"
@@ -24,6 +14,16 @@
 		<include layout="@layout/music_playback_pager"/>
 
 	</org.mariotaku.harmony.view.SquareFrameLayout>
+
+	<FrameLayout
+		android:id="@+id/info_container"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentTop="true"
+		android:layout_toRightOf="@+id/pager_container">
+
+		<include layout="@layout/music_playback_info"/>
+	</FrameLayout>
 
 	<FrameLayout
 		android:id="@+id/controls_container"

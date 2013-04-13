@@ -19,6 +19,26 @@
  */
 
 package org.mariotaku.harmony.activity;
+ 
+import org.mariotaku.harmony.Constants;
+import org.mariotaku.harmony.R;
+import org.mariotaku.harmony.activity.BaseActivity;
+import org.mariotaku.harmony.app.HarmonyApplication;
+import org.mariotaku.harmony.dialog.ScanningProgress;
+import org.mariotaku.harmony.fragment.AlbumsFragment;
+import org.mariotaku.harmony.fragment.ArtistAlbumsFragment;
+import org.mariotaku.harmony.fragment.GenresFragment;
+import org.mariotaku.harmony.fragment.TracksFragment;
+import org.mariotaku.harmony.model.AlbumInfo;
+import org.mariotaku.harmony.model.TrackInfo;
+import org.mariotaku.harmony.util.ImageLoaderWrapper;
+import org.mariotaku.harmony.util.PreferencesEditor;
+import org.mariotaku.harmony.util.ServiceWrapper;
+import org.mariotaku.harmony.fragment.ArtistsFragment;
+import org.mariotaku.harmony.util.MusicUtils;
+import org.mariotaku.harmony.view.AlbumArtView;
+
+import java.util.ArrayList;
 
 import android.app.ActionBar;
 import android.app.ActionBar.OnNavigationListener;
@@ -39,22 +59,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import java.util.ArrayList;
-import org.mariotaku.harmony.Constants;
-import org.mariotaku.harmony.R;
-import org.mariotaku.harmony.activity.BaseActivity;
-import org.mariotaku.harmony.app.HarmonyApplication;
-import org.mariotaku.harmony.dialog.ScanningProgress;
-import org.mariotaku.harmony.fragment.AlbumsFragment;
-import org.mariotaku.harmony.fragment.ArtistAlbumsFragment;
-import org.mariotaku.harmony.fragment.GenresFragment;
-import org.mariotaku.harmony.fragment.TracksFragment;
-import org.mariotaku.harmony.model.AlbumInfo;
-import org.mariotaku.harmony.model.TrackInfo;
-import org.mariotaku.harmony.util.ImageLoaderWrapper;
-import org.mariotaku.harmony.util.PreferencesEditor;
-import org.mariotaku.harmony.util.ServiceWrapper;
-import org.mariotaku.harmony.fragment.ArtistsFragment;
+import android.widget.ImageButton;
 
 public class MusicBrowserActivity extends BaseActivity implements Constants, View.OnClickListener, OnNavigationListener, 
 		TabListener, OnPageChangeListener  {
@@ -62,34 +67,50 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 	private TextView mTrackName;
 	private TextView mTrackDetail;
 
-	private ImageView mAlbumArt;
+	private AlbumArtView mAlbumArt;
 
 	private ArrayAdapter<String> mSpinnerAdapter;
-
-	public void onClick(final View view) {
-		// TODO: Implement this method
-		switch (view.getId()) {
-			case R.id.music_browser_control: {
-				final Intent intent = new Intent(this, MusicPlaybackActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
-				startActivity(intent);
-				break;
-			}
-		}
-	}
-	
+	private TabsAdapter mTabsAdapter;
 
 	private ActionBar mActionBar;
 	private ViewPager mViewPager;
-
-	private TabsAdapter mTabsAdapter;
 
 	private ServiceWrapper mService;
 	private PreferencesEditor mPrefs;
 
 	private ImageLoaderWrapper mImageLoader;
-	
+
 	private View mControlContainer;
+	private ImageButton mPlayPauseButton, mNextButton;
+	
+	public void onClick(final View view) {
+		if (mService == null) return;
+		switch (view.getId()) {
+			case R.id.music_browser_control: {
+				if (mService.getTrackInfo() == null) {
+					MusicUtils.shuffleAll(this, mService);
+				} else {
+					final Intent intent = new Intent(this, MusicPlaybackActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+					startActivity(intent);
+				}
+				break;
+			}
+			case R.id.play_pause: {
+				if (mService.isPlaying()) {
+					mService.pause();
+				} else {
+					mService.play();
+				}
+				break;
+			}
+			case R.id.next: {
+				mService.next();
+				break;
+			}
+		}
+	}
+	
 
 	@Override
 	public void onCreate(Bundle icicle) {
@@ -124,13 +145,17 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 			mControlContainer = mActionBar.getCustomView();
 			mViewPager.setEnabled(false);
 		}
-		mAlbumArt = (ImageView) mControlContainer.findViewById(R.id.album_art);
+		mAlbumArt = (AlbumArtView) mControlContainer.findViewById(R.id.album_art);
 		mTrackName = (TextView) mControlContainer.findViewById(R.id.track_name);
 		mTrackDetail = (TextView) mControlContainer.findViewById(R.id.track_detail);
+		mPlayPauseButton = (ImageButton) mControlContainer.findViewById(R.id.play_pause);
+		mNextButton = (ImageButton) mControlContainer.findViewById(R.id.next);
 		mTabsAdapter = new TabsAdapter(this);
 		mViewPager.setOnPageChangeListener(this);
 		mViewPager.setOffscreenPageLimit(3);
 		mViewPager.setAdapter(mTabsAdapter);
+		mPlayPauseButton.setOnClickListener(this);
+		mNextButton.setOnClickListener(this);
 		configureTabs(!mViewPager.isEnabled());
 		final int currenttab = mPrefs.getIntState(STATE_KEY_PAGE_POSITION_BROWSER, 0);
 		mActionBar.setSelectedNavigationItem(currenttab);
@@ -146,6 +171,7 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 	protected void onServiceConnected(final ServiceWrapper service) {
 		mService = service;
 		updateTrackInfo();
+		updatePlayPauseButton();
 	}
 
 	@Override
@@ -210,15 +236,19 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 	
 	protected void onCurrentMediaChanged() {
 		updateTrackInfo();
+		updatePlayPauseButton();
 	}
 
+	protected void onPlayStateChanged() {
+		updatePlayPauseButton();
+	}
+	
 	private void updateTrackInfo() {
 		if (mService == null) return;
 		final TrackInfo track = mService.getTrackInfo();
-		final AlbumInfo album = AlbumInfo.getAlbumInfo(this, track);
-		if (track == null) {
-			// Empty playlist
-		} else {
+		mPlayPauseButton.setVisibility(track != null ? View.VISIBLE : View.GONE);
+		mNextButton.setVisibility(track != null ? View.VISIBLE : View.GONE);
+		if (track != null) {
 			mTrackName.setText(track.title);
 			if (!TrackInfo.isUnknownArtist(track)) {
 				mTrackDetail.setText(track.artist);
@@ -227,10 +257,23 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 			} else {
 				mTrackDetail.setText(R.string.unknown_artist);
 			}
+			mAlbumArt.loadAlbumArt(track);
+		} else {
+			mTrackName.setText(R.string.empty_queue);
+			mTrackDetail.setText(R.string.touch_to_shuffle_all);
+			mAlbumArt.loadAlbumArt(null);
 		}
-		mImageLoader.displayImage(mAlbumArt, album != null ? album.album_art : null);
 	}
 
+	private void updatePlayPauseButton() {
+		if (mService == null) return;
+		if (mService.isPlaying()) {
+			mPlayPauseButton.setImageResource(R.drawable.btn_playback_ic_pause);
+		} else {
+			mPlayPauseButton.setImageResource(R.drawable.btn_playback_ic_play);
+		}
+	}
+	
 	private static class TabsAdapter extends FragmentStatePagerAdapter {
 		
 		private final ArrayList<Class<? extends Fragment>> mFragments = new ArrayList<Class<? extends Fragment>>();

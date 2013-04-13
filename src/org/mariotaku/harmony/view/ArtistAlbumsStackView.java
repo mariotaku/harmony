@@ -83,7 +83,7 @@ public final class ArtistAlbumsStackView extends FrameLayout implements Constant
 		for (int i = 0; i < child_count; i++) {
 			final ImageView v = (ImageView) getChildAt(i);
 			if (v != null) {
-				v.setImageDrawable(null);
+				v.setImageResource(R.drawable.ic_mp_albumart_unknown);
 			}
 		}
 		if (ALBUMS_CACHE.containsKey(id)) {
@@ -185,7 +185,8 @@ public final class ArtistAlbumsStackView extends FrameLayout implements Constant
 					final String art = c.getString(idx);
 					arts[i] = art;
 					if (!c.moveToNext()) {
-						c.moveToFirst();
+						//c.moveToFirst();
+						break;
 					}
 				}
 			}

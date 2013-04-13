@@ -51,7 +51,7 @@ public class TracksAdapter extends SimpleDragSortCursorAdapter {
 
 		final long audio_id = cursor.getLong(mIdIdx);
 
-		if (mCurrentTrackId == audio_id) {
+		if (mCurrentTrackId >=0 && mCurrentTrackId == audio_id) {
 			holder.track.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_indicator_nowplaying_small, 0);
 		} else {
 			holder.track.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);

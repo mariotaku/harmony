@@ -92,7 +92,7 @@ public final class ArtistAlbumsAdapter extends SimpleCursorTreeAdapter implement
 
 		viewholder.album_track_count.setText(songs_albums);
 
-		if (mCurrentArtistId == cursor.getLong(mArtistIdIdx)) {
+		if (mCurrentArtistId >=0 && mCurrentArtistId == cursor.getLong(mArtistIdIdx)) {
 			viewholder.artist_name.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_indicator_nowplaying_small, 0);
 		} else {
 			viewholder.artist_name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);

@@ -93,7 +93,8 @@ OnScrollListener, View.OnClickListener {
 	private View mSearchLyricsButton;
 
 	@Override
-	public void dispatchTouchEvent(ViewGroup view, MotionEvent event) {
+	public boolean dispatchTouchEvent(ViewGroup view, MotionEvent event) {
+		return false;
 	}
 	
 	@Override

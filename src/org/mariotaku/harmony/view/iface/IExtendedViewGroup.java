@@ -9,7 +9,7 @@ public interface IExtendedViewGroup extends IExtendedView {
 
 	public static interface TouchInterceptor {
 
-		void dispatchTouchEvent(ViewGroup view, MotionEvent event);
+		boolean dispatchTouchEvent(ViewGroup view, MotionEvent event);
 
 		boolean onInterceptTouchEvent(ViewGroup view, MotionEvent event);
 
