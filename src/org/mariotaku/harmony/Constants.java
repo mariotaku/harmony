@@ -205,6 +205,7 @@ public interface Constants {
 	public final static String INTENT_KEY_ALBUM_IDS = "album_ids";
 	public final static String INTENT_KEY_ARTIST = "artist";
 	public final static String INTENT_KEY_ARTIST_IDS = "artist_ids";
+	public final static String INTENT_KEY_GENRES = "artist_ids";
 	public final static String INTENT_KEY_TRACK = "track";
 	public final static String INTENT_KEY_PLAYLIST = "playlist";
 	public final static String INTENT_KEY_PATH = "path";

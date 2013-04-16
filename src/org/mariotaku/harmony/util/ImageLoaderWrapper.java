@@ -9,6 +9,7 @@ import org.mariotaku.harmony.R;
 import android.util.Log;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 import android.text.TextUtils;
+import android.graphics.BitmapFactory;
 
 public class ImageLoaderWrapper {
 	
@@ -18,10 +19,13 @@ public class ImageLoaderWrapper {
 	public ImageLoaderWrapper(final ImageLoader loader) {
 		mImageLoader = loader;
 		final DisplayImageOptions.Builder builder = new DisplayImageOptions.Builder();
+		final BitmapFactory.Options opts = new BitmapFactory.Options();
+		opts.inDither = true;
 		builder.cacheInMemory();
 		builder.cacheOnDisc();
 		builder.showStubImage(R.drawable.ic_mp_albumart_unknown);
-		builder.bitmapConfig(Bitmap.Config.ARGB_8888);
+		builder.bitmapConfig(Bitmap.Config.RGB_565);
+		builder.decodingOptions(opts);
 		//builder.displayer(new FadeInBitmapDisplayer(400));
 		mImageDisplayOptions = builder.build();
 	}

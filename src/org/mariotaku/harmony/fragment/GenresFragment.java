@@ -41,99 +41,85 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 import org.mariotaku.harmony.activity.TracksBrowserActivity;
+import org.mariotaku.harmony.loader.GenresLoader;
+import org.mariotaku.harmony.adapter.ArrayAdapter;
+import org.mariotaku.harmony.model.GenreInfo;
+import org.mariotaku.harmony.util.ListUtils;
+import android.widget.AdapterView;
+import android.widget.GridView;
+import org.mariotaku.harmony.view.holder.BaseGridViewHolder;
 
-public class GenresFragment extends BaseListFragment implements LoaderCallbacks<Cursor>, Constants {
+public class GenresFragment extends BaseFragment implements LoaderCallbacks<GenreInfo[]>, AdapterView.OnItemClickListener {
 
 	private GenresAdapter mAdapter;
-	private int mNameIdx;
+	private GridView mGridView;
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-
-		setHasOptionsMenu(true);
-
-		mAdapter = new GenresAdapter(getActivity(), null, false);
-
+		mAdapter = new GenresAdapter(getActivity());
+		mGridView.setAdapter(mAdapter);
+		mGridView.setOnItemClickListener(this);
 		getLoaderManager().initLoader(0, null, this);
 	}
 
 	@Override
-	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-
-		String[] cols = new String[] { Audio.Genres._ID, Audio.Genres.NAME };
-
-		String where = MusicUtils.getBetterGenresWhereClause(getActivity());
-
-		Uri uri = Audio.Genres.EXTERNAL_CONTENT_URI;
-
-		return new CursorLoader(getActivity(), uri, cols, where, null,
-				Audio.Genres.DEFAULT_SORT_ORDER);
+	public Loader<GenreInfo[]> onCreateLoader(int id, Bundle args) {
+		return new GenresLoader(getActivity(), null, null, Audio.Genres.NAME);
 	}
 
 	@Override
-	public void onListItemClick(ListView listview, View view, int position, long id) {
-		showDetails(position, id);
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		final View view = inflater.inflate(R.layout.base_grid_view, container, false);
+		mGridView = (GridView) view.findViewById(android.R.id.list);
+		return view;
 	}
 
 	@Override
-	public void onLoaderReset(Loader<Cursor> loader) {
-		mAdapter.swapCursor(null);
+	public void onItemClick(AdapterView<?> view, View child, int position, long id) {
+		final GenreInfo genre = mAdapter.getItem(position);
+		final Uri.Builder builder = new Uri.Builder();
+		builder.scheme(SCHEME_HARMONY_TRACKS);
+		builder.authority(AUTHORITY_GENRES);
+		builder.appendPath(genre.getName());
+		final Intent intent = new Intent(Intent.ACTION_VIEW, builder.build());
+		intent.setClass(getActivity(), TracksBrowserActivity.class);
+		startActivity(intent);
 	}
 
 	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-		mNameIdx = data.getColumnIndexOrThrow(Audio.Genres.NAME);
-		mAdapter.changeCursor(data);
-		setListAdapter(mAdapter);
+	public void onLoaderReset(Loader<GenreInfo[]> loader) {
+		mAdapter.clear();
 	}
 
-	private void showDetails(int index, long id) {
-
-
-		Bundle bundle = new Bundle();
-		bundle.putString(INTENT_KEY_TYPE, Audio.Genres.CONTENT_TYPE);
-		bundle.putLong(Audio.Genres._ID, id);
-
-
-		Intent intent = new Intent(getActivity(), TracksBrowserActivity.class);
-			intent.putExtras(bundle);
-			startActivity(intent);
+	@Override
+	public void onLoadFinished(Loader<GenreInfo[]> loader, GenreInfo[] data) {
+		mAdapter.setData(data);
 	}
 
-	private class GenresAdapter extends CursorAdapter {
+	private static class GenresAdapter extends ArrayAdapter<GenreInfo> {
 
-		private GenresAdapter(Context context, Cursor cursor, boolean autoRequery) {
-			super(context, cursor, autoRequery);
+		private GenresAdapter(Context context) {
+			super(context, R.layout.base_grid_item);
+		}
+
+		public void setData(GenreInfo[] data) {
+			clear();
+			addAll(ListUtils.fromArray(data));
 		}
 
 		@Override
-		public void bindView(View view, Context context, Cursor cursor) {
-
-			ViewHolder viewholder = (ViewHolder) view.getTag();
-
-			String genre_name = cursor.getString(mNameIdx);
-			viewholder.genre_name.setText(MusicUtils.parseGenreName(genre_name));
-
-		}
-
-		@Override
-		public View newView(Context context, Cursor cursor, ViewGroup parent) {
-
-			View view = LayoutInflater.from(context).inflate(R.layout.playlist_list_item, parent, false);
-			ViewHolder viewholder = new ViewHolder(view);
-			view.setTag(viewholder);
+		public View getView(final int position, final View convertView, final ViewGroup parent) {
+			final View view = super.getView(position, convertView, parent);
+			final BaseGridViewHolder tag = (BaseGridViewHolder) view.getTag();
+			final BaseGridViewHolder holder = tag != null ? tag : new BaseGridViewHolder(view);
+			if (tag == null) {
+				view.setTag(holder);
+			}			
+			final GenreInfo line = getItem(position);
+			holder.text1.setText(line.getName());
+			holder.icon.setImageResource(R.drawable.ic_mp_albumart_unknown);
 			return view;
-		}
-
-		private class ViewHolder {
-
-			TextView genre_name;
-
-			public ViewHolder(View view) {
-				genre_name = (TextView) view.findViewById(R.id.playlist_name);
-			}
 		}
 
 	}

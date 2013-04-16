@@ -8,6 +8,5 @@
 	android:horizontalSpacing="@dimen/default_element_spacing"
 	android:numColumns="@integer/album_grid_rows"
 	android:stretchMode="columnWidth"
-	android:verticalSpacing="@dimen/default_element_spacing"
-	android:padding="@dimen/music_browser_page_padding"/>
+	android:verticalSpacing="@dimen/default_element_spacing"/>
 

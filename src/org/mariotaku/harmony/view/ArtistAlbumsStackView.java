@@ -46,18 +46,23 @@ public final class ArtistAlbumsStackView extends FrameLayout implements Constant
 		mResolver = context.getContentResolver();
 		mImageLoader = HarmonyApplication.getInstance(context).getImageLoaderWrapper();
 		for (int i = 0; i < STACK_ITEM_COUNT; i++) {
-			final ItemView v = new ItemView(context);
+			final ItemView v;
 			final int gravity;
 			if (i == 0) {
+				v = new ItemView(context, false);
 				gravity = Gravity.TOP|Gravity.RIGHT;
+				v.setBackgroundResource(R.drawable.stack_item_shadow_3);
 			} else if (i == STACK_ITEM_COUNT - 1) {
+				v = new ItemView(context, false);
 				gravity = Gravity.BOTTOM|Gravity.LEFT;
+				v.setBackgroundResource(R.drawable.stack_item_shadow_1);
 			} else {
+				v = new ItemView(context, true);
 				gravity = Gravity.CENTER;
+				v.setBackgroundResource(R.drawable.stack_item_shadow_2);
 			}
 			final LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, gravity);
 			addView(v, lp);
-			v.setBackgroundResource(R.drawable.album_item_shadow);
 		}
 	}
 	
@@ -130,13 +135,23 @@ public final class ArtistAlbumsStackView extends FrameLayout implements Constant
 
 		private static final float SCALE_FACTOR = 0.9f;
 
-		private ItemView(final Context context) {
+		private final boolean mIsCenter;
+
+		private ItemView(final Context context, boolean is_center) {
 			super(context);
+			mIsCenter = is_center;
 		}
 
 		@Override
 		protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
-			final int width = (int) (MeasureSpec.getSize(widthMeasureSpec) * SCALE_FACTOR), height = (int) (MeasureSpec.getSize(heightMeasureSpec) * SCALE_FACTOR);
+			final int width, height;
+			if (mIsCenter) {
+				width = (int) (MeasureSpec.getSize(widthMeasureSpec) * SCALE_FACTOR) + (getPaddingLeft() + getPaddingRight()) / 2;
+				height = (int) (MeasureSpec.getSize(heightMeasureSpec) * SCALE_FACTOR) + (getPaddingTop() + getPaddingBottom()) / 2;
+			} else {
+				width = (int) (MeasureSpec.getSize(widthMeasureSpec) * SCALE_FACTOR);
+				height = (int) (MeasureSpec.getSize(heightMeasureSpec) * SCALE_FACTOR);
+			}
 			final int wMode = MeasureSpec.getMode(widthMeasureSpec), hMode = MeasureSpec.getMode(heightMeasureSpec);
 			final int wSpec = MeasureSpec.makeMeasureSpec(width, wMode), hSpec = MeasureSpec.makeMeasureSpec(height, hMode);
 			final ViewGroup.LayoutParams lp = getLayoutParams();

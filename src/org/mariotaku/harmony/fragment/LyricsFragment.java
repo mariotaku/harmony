@@ -251,6 +251,7 @@ OnScrollListener, View.OnClickListener {
 	@Override
 	public void onStart() {
 		super.onStart();
+		mBusy = false;
 		mAdapter.setTextSize(mPreferences.getFloatPref(PREFERENCE_KEY_LYRICS_TEXTSIZE, PREFERENCE_DEFAULT_TEXTSIZE_LYRICS));
 	}
 	

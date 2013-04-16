@@ -66,7 +66,7 @@ LoaderManager.LoaderCallbacks<Cursor> {
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		final View view = inflater.inflate(R.layout.artists_browser, container, false);
+		final View view = inflater.inflate(R.layout.base_grid_view, container, false);
 		mGridView = (GridView) view.findViewById(android.R.id.list);
 		return view;
 	}

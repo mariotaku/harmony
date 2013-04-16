@@ -465,7 +465,8 @@ GestureDetector.OnGestureListener {
 				break;
 			}
 			case MENU_HOME: {
-				NavUtils.navigateUpFromSameTask(this);
+				overridePendingTransition(R.anim.music_playback_activity_enter, R.anim.music_playback_activity_exit);
+				NavUtils.navigateUpTo(this, new Intent(this, MusicBrowserActivity.class));
 				break;
 			}
 			case ADD_TO_FAVORITES: {

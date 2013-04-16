@@ -33,19 +33,21 @@ import org.mariotaku.harmony.fragment.AlbumTracksFragment;
 import org.mariotaku.harmony.fragment.ArtistTracksFragment;
 import org.mariotaku.harmony.util.ServiceWrapper;
 import org.mariotaku.harmony.util.ArrayUtils;
+import org.mariotaku.harmony.fragment.GenreTracksFragment;
 
 public class TracksBrowserActivity extends BaseActivity implements Constants {
 
 	private static final UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 	private static final int URI_CODE_ALBUM_TRACKS = 1;
 	private static final int URI_CODE_ARTIST_TRACKS = 2;
+	private static final int URI_CODE_GENRE_TRACKS = 3;
 
 	private ActionBar mActionBar;
 
- 
 	static {
 		URI_MATCHER.addURI(AUTHORITY_ALBUMS, "*", URI_CODE_ALBUM_TRACKS);
 		URI_MATCHER.addURI(AUTHORITY_ARTISTS, "*", URI_CODE_ARTIST_TRACKS);
+		URI_MATCHER.addURI(AUTHORITY_GENRES, "*", URI_CODE_GENRE_TRACKS);
 	}
  
 	@Override
@@ -70,6 +72,13 @@ public class TracksBrowserActivity extends BaseActivity implements Constants {
 				fragment = new ArtistTracksFragment();
 				final long[] ids = ArrayUtils.fromString(uri.getLastPathSegment(), ',');
 				args.putLongArray(INTENT_KEY_ARTIST_IDS, ids);
+				fragment.setArguments(args);
+				break;
+			}
+			case URI_CODE_GENRE_TRACKS: {
+				fragment = new GenreTracksFragment();
+				final String[] genres = uri.getLastPathSegment().split(",");
+				args.putStringArray(INTENT_KEY_GENRES, genres);
 				fragment.setArguments(args);
 				break;
 			}

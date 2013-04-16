@@ -60,6 +60,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ImageButton;
+import android.view.Menu;
 
 public class MusicBrowserActivity extends BaseActivity implements Constants, View.OnClickListener, OnNavigationListener, 
 		TabListener, OnPageChangeListener  {
@@ -119,7 +120,7 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 		mImageLoader = HarmonyApplication.getInstance(this).getImageLoaderWrapper();
 		mActionBar = getActionBar();
 		mActionBar.setDisplayShowTitleEnabled(false);
-		mActionBar.setDisplayShowHomeEnabled(false);
+		//mActionBar.setDisplayShowHomeEnabled(false);
 		mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
 		mPrefs = new PreferencesEditor(this);
@@ -133,18 +134,15 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 		}
 
 		setContentView(R.layout.music_browser);
-		mControlContainer = findViewById(R.id.music_browser_control);
 		mSpinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, android.R.id.text1);
 		mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		if (mControlContainer == null) {
-			mActionBar.setDisplayShowCustomEnabled(true);
-			mActionBar.setDisplayShowHomeEnabled(true);
-			mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-			mActionBar.setListNavigationCallbacks(mSpinnerAdapter, this);
-			mActionBar.setCustomView(R.layout.music_browser_control_bar);
-			mControlContainer = mActionBar.getCustomView();
-			mViewPager.setEnabled(false);
-		}
+		mActionBar.setDisplayShowCustomEnabled(true);
+		//mActionBar.setDisplayShowHomeEnabled(true);
+		//mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+		//mActionBar.setListNavigationCallbacks(mSpinnerAdapter, this);
+		mActionBar.setCustomView(R.layout.music_browser_control_bar);
+		mControlContainer = mActionBar.getCustomView();
+		//mViewPager.setEnabled(false);
 		mAlbumArt = (AlbumArtView) mControlContainer.findViewById(R.id.album_art);
 		mTrackName = (TextView) mControlContainer.findViewById(R.id.track_name);
 		mTrackDetail = (TextView) mControlContainer.findViewById(R.id.track_detail);
@@ -226,6 +224,11 @@ public class MusicBrowserActivity extends BaseActivity implements Constants, Vie
 		addTab(TracksFragment.class, getString(R.string.tracks));
 		//mTabsAdapter.addFragment(new PlaylistFragment(), getString(R.string.playlists));
 		addTab(GenresFragment.class, getString(R.string.genres));
+	}
+	
+	public boolean onCreateOptionsMenu(final Menu menu) {
+		getMenuInflater().inflate(R.menu.menu_music_browser, menu);
+		return true;
 	}
 	
 	private void addTab(final Class<? extends Fragment> clz, final String name) {

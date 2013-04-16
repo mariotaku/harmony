@@ -24,12 +24,8 @@ import android.widget.ViewSwitcher.ViewFactory;
 
 public class AlbumArtView extends ImageSwitcher implements ViewFactory {
 
-	private static final int IMAGE_VIEWS_COUNT = 2;
-
-	private final ImageView[] mImageViews = new ImageView[IMAGE_VIEWS_COUNT];
 	private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
 	
-	private int mImageIndex;
 	private TrackInfo mTrackInfo;
 
 	public AlbumArtView(final Context context) {
@@ -38,14 +34,8 @@ public class AlbumArtView extends ImageSwitcher implements ViewFactory {
 
 	public AlbumArtView(final Context context, final AttributeSet attrs) {
 		super(context, attrs);
-		for (int i = 0; i < IMAGE_VIEWS_COUNT; i++) {
-			final ImageView view = new ImageView(context);
-			view.setScaleType(ImageView.ScaleType.CENTER_CROP);
-			view.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-			mImageViews[i] = view;
-		}
-		setInAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_in));
-		setOutAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_out));
+		setInAnimation(context, android.R.anim.fade_in);
+		setOutAnimation(context, android.R.anim.fade_out);
 		setFactory(this);
 	}
 
@@ -65,11 +55,9 @@ public class AlbumArtView extends ImageSwitcher implements ViewFactory {
 
 	@Override
 	public View makeView() {
-		if (mImageIndex >= mImageViews.length) {
-			mImageIndex = 0;
-		}
-		final ImageView view = mImageViews[mImageIndex];
-		mImageIndex++;
+		final ImageView view = new ImageView(getContext());
+		view.setScaleType(ImageView.ScaleType.CENTER_CROP);
+		view.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		return view;
 	}
 	
@@ -155,6 +143,8 @@ public class AlbumArtView extends ImageSwitcher implements ViewFactory {
 			if (bmp_size == 0) return null;
 			opts.inSampleSize = (int) Math.floor(bmp_size / mSize);
 			opts.inJustDecodeBounds = false;
+			opts.inDither = true;
+			opts.inPreferredConfig = Bitmap.Config.RGB_565;
 			return BitmapFactory.decodeFile(path, opts);			
 		}
 	}
@@ -170,7 +160,7 @@ public class AlbumArtView extends ImageSwitcher implements ViewFactory {
 		}
 
 		@Override
-		public void run() {
+		public void run() {			
 			if (drawable != null) {
 				view.setImageDrawable(drawable);
 			} else {

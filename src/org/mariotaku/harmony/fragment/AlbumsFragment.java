@@ -42,9 +42,13 @@ import org.mariotaku.harmony.model.AlbumInfo;
 import org.mariotaku.harmony.model.TrackInfo;
 import org.mariotaku.harmony.util.ServiceWrapper;
 import org.mariotaku.harmony.util.ArrayUtils;
+import android.view.MenuItem;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuInflater;
 
 public class AlbumsFragment extends BaseFragment implements Constants, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener,
-		LoaderManager.LoaderCallbacks<Cursor> {
+		LoaderManager.LoaderCallbacks<Cursor>, GridView.MultiChoiceModeListener {
 
 	private AlbumsAdapter mAdapter;
 	private GridView mGridView;
@@ -56,7 +60,9 @@ public class AlbumsFragment extends BaseFragment implements Constants, AdapterVi
 		mAdapter = new AlbumsAdapter(getActivity());
 		mGridView.setAdapter(mAdapter);
 		mGridView.setOnItemClickListener(this);
-		mGridView.setOnItemLongClickListener(this);
+		//mGridView.setOnItemLongClickListener(this);
+		mGridView.setChoiceMode(GridView.CHOICE_MODE_MULTIPLE_MODAL);
+		mGridView.setMultiChoiceModeListener(this);
 		getLoaderManager().initLoader(0, getArguments(), this);
 	}
 
@@ -71,7 +77,7 @@ public class AlbumsFragment extends BaseFragment implements Constants, AdapterVi
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		final View view = inflater.inflate(R.layout.albums_browser, container, false);
+		final View view = inflater.inflate(R.layout.base_grid_view, container, false);
 		mGridView = (GridView) view.findViewById(android.R.id.list);
 		return view;
 	}
@@ -90,10 +96,34 @@ public class AlbumsFragment extends BaseFragment implements Constants, AdapterVi
 	@Override
 	public boolean onItemLongClick(AdapterView<?> view, View child, int position, long id) {
 		final AlbumInfo album = mAdapter.getAlbumInfo(position);
-		Toast.makeText(getActivity(), "album " + album + " selected", Toast.LENGTH_SHORT).show();
 		return true;
 	}
 
+	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+		// TODO: Implement this method
+		new MenuInflater(getActivity()).inflate(R.menu.action_album_item, menu);
+		return true;
+	}
+
+	public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+		// TODO: Implement this method
+		return true;
+	}
+
+	public boolean onActionItemClicked(ActionMode mode, MenuItem menu) {
+		// TODO: Implement this method
+		return false;
+	}
+
+	public void onDestroyActionMode(ActionMode mode) {
+		// TODO: Implement this method
+	}
+
+	public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+		// TODO: Implement this method
+		mAdapter.notifyDataSetChanged();
+	}
+	
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
 		mAdapter.changeCursor(null);

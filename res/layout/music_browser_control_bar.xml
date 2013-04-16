@@ -1,84 +1,60 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/music_browser_control"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:orientation="horizontal">
+	android:clickable="true"
+	android:onClick="onClick"
+	android:background="?android:attr/selectableItemBackground">
 
-	<RelativeLayout
-		android:id="@+id/music_browser_control"
-		android:layout_width="match_parent"
+	<org.mariotaku.harmony.view.AlbumArtView
+		android:id="@+id/album_art"
 		android:layout_height="match_parent"
-		android:layout_weight="1"
-		android:clickable="true"
-		android:onClick="onClick"
-		android:gravity="center_vertical"
-		android:background="?android:attr/selectableItemBackground">
+		android:layout_width="wrap_content"
+		android:layout_alignParentLeft="true"
+		android:layout_centerVertical="true"/>
 
-		<org.mariotaku.harmony.view.AlbumArtView
-			android:id="@+id/album_art"
-			android:layout_height="match_parent"
-			android:layout_width="wrap_content"
-			android:layout_alignParentLeft="true"
-			android:layout_centerVertical="true"
-			android:background="@drawable/album_item_shadow"/>
+	<LinearLayout
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_centerVertical="true"
+		android:layout_toLeftOf="@+id/play_pause"
+		android:layout_toRightOf="@+id/album_art"
+		android:layout_marginLeft="@dimen/default_element_spacing"
+		android:orientation="vertical">
 
-		<LinearLayout
+		<TextView
+			android:id="@+id/track_name"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:layout_centerVertical="true"
-			android:layout_toLeftOf="@+id/play_pause"
-			android:layout_toRightOf="@+id/album_art"
-			android:layout_marginLeft="@dimen/default_element_spacing"
-			android:orientation="vertical">
+			android:singleLine="true"
+			android:textAppearance="?android:attr/textAppearanceMedium"/>
 
-			<TextView
-				android:id="@+id/track_name"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:singleLine="true"
-				android:textAppearance="?android:attr/textAppearanceMedium"/>
-
-			<TextView
-				android:id="@+id/track_detail"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:singleLine="true"
-				android:textAppearance="?android:attr/textAppearanceSmall"/>
-		</LinearLayout>
-
-		<ImageButton
-			android:id="@+id/play_pause"
-			android:layout_width="@dimen/music_browser_bottom_bar_button_width"
-			android:layout_height="match_parent"
-			android:layout_centerInParent="true"
-			android:layout_toLeftOf="@+id/next"
-			android:src="@drawable/btn_playback_ic_play"
-			style="?android:attr/borderlessButtonStyle"/>
-			
-		<ImageButton
-			android:id="@+id/next"
-			android:layout_width="@dimen/music_browser_bottom_bar_button_width"
-			android:layout_height="match_parent"
-			android:layout_alignParentRight="true"
-			android:layout_centerInParent="true"
-			android:src="@drawable/btn_playback_ic_next"
-			style="?android:attr/borderlessButtonStyle"/>
-	</RelativeLayout>
-
-	<View
-		android:layout_width="0.4dp"
-		android:layout_height="match_parent"
-		android:layout_marginTop="6dp"
-		android:layout_marginBottom="6dp"
-		android:layout_weight="0"
-		android:background="#80808080"/>
+		<TextView
+			android:id="@+id/track_detail"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:singleLine="true"
+			android:textAppearance="?android:attr/textAppearanceSmall"/>
+	</LinearLayout>
 
 	<ImageButton
-		android:id="@+id/music_browser_menu"
+		android:id="@+id/play_pause"
 		android:layout_width="@dimen/music_browser_bottom_bar_button_width"
 		android:layout_height="match_parent"
-		android:layout_weight="0"
-		android:src="@drawable/ic_menu_more"
+		android:layout_centerInParent="true"
+		android:layout_toLeftOf="@+id/next"
+		android:src="@drawable/btn_playback_ic_play"
 		style="?android:attr/borderlessButtonStyle"/>
 
-</LinearLayout>
+	<ImageButton
+		android:id="@+id/next"
+		android:layout_width="@dimen/music_browser_bottom_bar_button_width"
+		android:layout_height="match_parent"
+		android:layout_alignParentRight="true"
+		android:layout_centerInParent="true"
+		android:src="@drawable/btn_playback_ic_next"
+		style="?android:attr/borderlessButtonStyle"/>
 		
+</RelativeLayout>
+

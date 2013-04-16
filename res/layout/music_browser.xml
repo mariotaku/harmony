@@ -1,34 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="match_parent"
-	android:layout_height="match_parent">
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<org.mariotaku.harmony.view.ExtendedViewPager
 		android:id="@+id/pager"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_above="@+id/music_browser_control_container"/>
-		
-	<LinearLayout
-		android:id="@+id/music_browser_control_container"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_alignParentBottom="true"
-		android:orientation="vertical">
+		android:layout_height="match_parent"/>
 
-		<View
-			android:layout_width="match_parent"
-			android:layout_height="1.5dp"
-			android:background="#80808080"/>
-
-		<FrameLayout
-			android:layout_width="match_parent"
-			android:layout_height="@dimen/music_browser_bottom_bar_height">
-
-			<include layout="@layout/music_browser_control_bar"/>
-
-		</FrameLayout>
-		
-	</LinearLayout>
-
-</RelativeLayout>
+</merge>

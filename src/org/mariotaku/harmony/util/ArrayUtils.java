@@ -104,6 +104,16 @@ public final class ArrayUtils {
 		}
 		return -1;
 	}
+	
+	public static int indexOfIgnoreCase(final CharSequence[] array, final CharSequence value) {
+		final int length = array.length;
+		for (int i = 0; i < length; i++) {
+			final CharSequence item = array[i];
+			if (item == null && value == null) return i;
+			if (item != null && value != null && item.toString().equalsIgnoreCase(value.toString())) return i;
+		}
+		return -1;
+	}
 
 	public static long[] intersection(final long[] array1, final long[] array2) {
 		if (array1 == null || array2 == null) return new long[0];
@@ -134,6 +144,21 @@ public final class ArrayUtils {
 		final String[] result = new String[length];
 		System.arraycopy(array, start, result, 0, length);
 		return result;
+	}
+
+	public static String toString(final char[] array, final char token, final boolean include_space) {
+		final StringBuilder builder = new StringBuilder();
+		final int length = array != null ? array.length : 0;
+		for (int i = 0; i < length; i++) {
+			final String id_string = String.valueOf(array[i]);
+			if (id_string != null) {
+				if (i > 0) {
+					builder.append(include_space ? token + " " : token);
+				}
+				builder.append(id_string);
+			}
+		}
+		return builder.toString();
 	}
 
 	public static String toString(final long[] array, final char token, final boolean include_space) {
