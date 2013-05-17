@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>yammp</name>
+	<name>harmony</name>
 	<comment></comment>
-	<projects>
-		<project>actionbarcompat</project>
-		<project>android-preferences</project>
-		<project>ViewPagerIndicator</project>
-	</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>com.android.ide.eclipse.adt.ResourceManagerBuilder</name>

@@ -992,7 +992,7 @@ public class MusicPlaybackService extends Service implements Constants {
 			builder.setWhen(0);
 			builder.setContentIntent(PendingIntent.getActivity(this, 0, new Intent(INTENT_PLAYBACK_VIEWER), 0));
 
-			mNotificationManager.notify(ID_NOTIFICATION_PLAYBACK, builder.getNotification());
+			startForeground(ID_NOTIFICATION_PLAYBACK, builder.getNotification());
 
 			if (!mIsSupposedToBePlaying) {
 				mIsSupposedToBePlaying = true;

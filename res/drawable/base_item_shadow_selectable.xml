@@ -2,7 +2,7 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:state_activated="true"
-        android:drawable="@android:color/holo_blue_dark"/>
+        android:drawable="@drawable/base_item_shadow_activated"/>
 		
     <item
 		android:drawable="@drawable/base_item_shadow"/>
