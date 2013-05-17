@@ -72,17 +72,14 @@ public abstract class AbsTracksFragment extends BaseListFragment implements Load
 		mAdapter.changeCursor(mCursor = null);
 	}
 	
-	@Override
 	protected String getWhereClause(final Bundle args) {
 		return null;
 	}
 	
-	@Override
 	protected String[] getWhereArgs(final Bundle args) {
 		return null;
 	}
 
-	@Override
 	protected String getSortOrder(final Bundle args) {
 		return null;
 	}
