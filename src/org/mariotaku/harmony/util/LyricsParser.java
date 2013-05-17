@@ -16,13 +16,11 @@
 
 package org.mariotaku.harmony.util;
 
-import org.mariotaku.harmony.model.Lyrics;
-import org.mozilla.universalchardet.UniversalDetector;
- 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,7 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.io.FileNotFoundException;
+import org.mariotaku.harmony.model.Lyrics;
+import org.mozilla.universalchardet.UniversalDetector;
 
 public class LyricsParser {
 
@@ -44,14 +43,10 @@ public class LyricsParser {
 		}
 		in.close();
 		final byte[] content = out.toByteArray();
-		final String encoding;
 		final UniversalDetector detector = new UniversalDetector(null);
 		detector.handleData(content, 0, content.length);
 		detector.dataEnd();
-		encoding = detector.getDetectedCharset();
-		if (encoding == null) {
-			encoding = "UTF-8";
-		}
+		final String detected = detector.getDetectedCharset(), encoding = detected != null ? detected : null;
 		return parseLRCString(new String(content, 0, content.length, encoding));
 	}
 

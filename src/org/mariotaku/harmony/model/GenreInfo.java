@@ -1,5 +1,7 @@
 package org.mariotaku.harmony.model;
 
+import static org.mariotaku.harmony.util.Utils.parseInt;
+
 import org.mariotaku.harmony.util.ArrayUtils;
 
 import android.text.TextUtils;
@@ -75,11 +77,7 @@ public class GenreInfo implements Comparable<GenreInfo> {
 		if (TextUtils.isEmpty(name)) {
 			idx = -1;
 		} else if (TextUtils.isDigitsOnly(name)) {
-			try {
-				idx = Integer.valueOf(name);
-			} catch (final NumberFormatException e) {
-				idx = -1;
-			}
+			idx = parseInt(name, -1);
 		} else {
 			idx = ArrayUtils.indexOfIgnoreCase(ID3_GENRES_LIST, name);
 		}

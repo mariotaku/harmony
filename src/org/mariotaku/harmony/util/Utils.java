@@ -1,6 +1,7 @@
 package org.mariotaku.harmony.util;
 import android.database.Cursor;
 import android.provider.BaseColumns;
+import android.text.TextUtils;
 
 public class Utils {
 
@@ -25,5 +26,14 @@ public class Utils {
 		}
 		cursor.moveToPosition(pos_backup);
 		return ids;
+	}
+	
+	public static final int parseInt(final String string, final int def) {
+		if (TextUtils.isEmpty(string)) return def;
+		try {
+			return Integer.parseInt(string);
+		} catch (final NumberFormatException e) {
+			return def;
+		}
 	}
 }

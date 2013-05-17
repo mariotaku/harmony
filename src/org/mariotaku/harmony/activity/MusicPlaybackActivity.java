@@ -386,8 +386,7 @@ GestureDetector.OnGestureListener {
 		return super.onKeyUp(keyCode, event);
 	}
 
-	@Override
-	public boolean onLongClick(View v) {
+	public boolean onLongClick(final View v) {
 
 		// TODO search media info
 
